@@ -1,0 +1,13 @@
+// Vitest Snapshot v1
+
+exports[`test strip mail quote > type 1 1`] = `
+"User:Xiplus
+
+On Sun, Oct 9, 2022 at 10:22 AM User <user@example.org> wrote:
+"
+`;
+
+exports[`test strip mail quote > type 2 1`] = `
+"Test
+"
+`;
