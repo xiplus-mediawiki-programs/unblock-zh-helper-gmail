@@ -1,77 +1,290 @@
 var SERVICE_SCOPE_REQUESTS = 'basic highvolume editpage editprotected createeditmovepage createlocalaccount';
 
+var cache = CacheService.getUserCache();
+
 function onGmailMessage(e) {
   // console.log(e);
 
+  var threadId = e.gmail.threadId;
+
+  if (threadId != cache.get('threadId')) {
+    cache.removeAll([
+      'input_username',
+      'input_email',
+      'input_iporid',
+      'input_variant',
+    ]);
+  }
+
+  return createCard(e);
+}
+
+function createCard(e) {
   var messageId = e.gmail.messageId;
   var threadId = e.gmail.threadId;
 
-  var res = apiRequest('GET', {
-    'action': 'query',
-    'meta': 'userinfo',
-    'format': 'json',
-    'formatversion': '2',
-  });
-  // console.log(res);
-  var userinfo = JSON.parse(res).query.userinfo;
+  // console.log('cache: ' + JSON.stringify(cache.getAll([
+  //   'input_username',
+  //   'input_email',
+  //   'input_iporid',
+  //   'threadId',
+  //   'messageId',
+  // ])));
+
+  cache.put('threadId', threadId);
 
   var accessToken = e.gmail.accessToken;
   GmailApp.setCurrentMessageAccessToken(accessToken);
 
+  var wpUsername = cache.get('wpUsername');
+  if (!wpUsername) {
+    // console.log('Fetching wikipedia username...');
+
+    var res = apiRequest('GET', {
+      'action': 'query',
+      'meta': 'userinfo',
+    });
+    // console.log(res);
+    var userinfo = res.query.userinfo;
+
+    wpUsername = userinfo.name;
+    cache.put('wpUsername', wpUsername, 60);
+  }
+
   var message = GmailApp.getMessageById(messageId);
   var thread = message.getThread();
   var text = '';
-  text += 'You are logged in as ' + userinfo.name + '\n';
-  text += 'thread: ' + threadId + '\n';
-  text += 'messageId: ' + messageId + '\n';
+  text += '您目前以 ' + wpUsername + ' 的身分登入維基百科\n';
+  // text += 'cache messageId: ' + cache.get('messageId') + '\n';
 
+  // Parse mails
   var messages = thread.getMessages();
-  text += 'messages:\n';
-  messages.forEach(message => {
-    var messageId = message.getId();
+  var requester = messages[0].getFrom();
+  var subject = thread.getFirstMessageSubject();
+
+  var allMailText = subject + '\n';
+  // text += 'subject: ' + subject + '\n';
+
+  // text += 'messages:\n';
+  messages.forEach((message, idx) => {
     var mailFrom = message.getFrom();
-    console.log('getFrom: ' + message.getFrom());
+    if (mailFrom != requester) {
+      return;
+    }
+
     // console.log('getReplyTo: ' + message.getReplyTo());
     var mailBody = message.getPlainBody();
     mailBody = stripMailQuote(mailBody);
-    console.log('mailBody: ' + mailBody);
-    text += messageId + ' ' + mailFrom + '\n';
+
+    allMailText += mailBody + '\n';
+
+    // console.log('getFrom: ' + message.getFrom());
+    // console.log('mailBody: ' + mailBody);
+
+    // text += (idx + 1) + ' ' + mailFrom.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '\n';
   });
 
-  var subject = thread.getFirstMessageSubject();
-  text += 'subject: ' + subject + '\n';
+  // console.log('allMailText', allMailText);
 
-  var textParagraph = CardService.newTextParagraph()
-    .setText(text);
+  var parseResult = parseMailBody(allMailText);
+  // text += 'parseResult: ' + JSON.stringify(parseResult) + '\n';
+  console.log('parseResult: ' + JSON.stringify(parseResult));
 
-  var action = CardService.newAction()
-    .setFunctionName('onWriteMail')
-    .setParameters({ text: 'test' });
+  if (parseResult.username.length > 0 && !cache.get('input_username')) {
+    cache.put('input_username', parseResult.username[0]);
+  }
+
+  if (parseResult.iporid.length > 0 && !cache.get('input_iporid')) {
+    cache.put('input_iporid', parseResult.iporid[0]);
+  }
+
+  if (!cache.get('input_email')) {
+    cache.put('input_email', stripEmail(requester));
+  }
+
+  // Build card
+  var section = CardService.newCardSection();
+
+  var textParagraph = CardService.newTextParagraph().setText(text);
+  section.addWidget(textParagraph);
+
   var button = CardService.newTextButton()
     .setText('Write mail')
     .setComposeAction(
-      action,
-      CardService.ComposedEmailType.REPLY_AS_DRAFT)
-    .setTextButtonStyle(CardService.TextButtonStyle.FILLED);
+      CardService.newAction()
+        .setFunctionName('onWriteMail')
+        .setParameters({ text: 'test' }),
+      CardService.ComposedEmailType.REPLY_AS_DRAFT
+    )
+    .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
 
-  var action2 = CardService.newAction()
-    .setFunctionName('onGrantIPBE');
   var button2 = CardService.newTextButton()
     .setText('Grant IPBE')
-    .setOnClickAction(action2)
-    .setTextButtonStyle(CardService.TextButtonStyle.FILLED);
+    .setOnClickAction(CardService.newAction().setFunctionName('onGrantIPBE'))
+    .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
 
-  var buttonSet = CardService.newButtonSet()
-    .addButton(button)
-    .addButton(button2);
+  var button3 = CardService.newTextButton()
+    .setText('Open Link')
+    .setOnClickOpenLinkAction(CardService.newAction().setFunctionName('openLinkCallback'))
+    .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
 
-  var section = CardService.newCardSection()
-    .addWidget(textParagraph)
-    .addWidget(buttonSet);
+  var textInputUsername = CardService.newTextInput()
+    .setFieldName('input_username')
+    .setTitle('使用者名稱')
+    .setValue(cache.get('input_username') || '')
+    .setOnChangeAction(CardService.newAction().setFunctionName('onFormInputChange'));
+  section.addWidget(textInputUsername);
+
+  if (parseResult.username.length > 0) {
+    var usernameButtonSet = CardService.newButtonSet();
+    parseResult.username.forEach(username => {
+      var button = CardService.newTextButton()
+        .setText(username)
+        .setOnClickAction(CardService.newAction()
+          .setFunctionName('updateInputValue')
+          .setParameters({ input_username: username })
+        )
+        .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
+      usernameButtonSet.addButton(button);
+    });
+    section.addWidget(usernameButtonSet);
+  }
+
+  var textInputEmail = CardService.newTextInput()
+    .setFieldName('input_email')
+    .setTitle('電子郵件地址')
+    .setValue(cache.get('input_email') || '')
+    .setOnChangeAction(CardService.newAction().setFunctionName('onFormInputChange'));
+  section.addWidget(textInputEmail);
+
+  var textInputIPorID = CardService.newTextInput()
+    .setFieldName('input_iporid')
+    .setTitle('IP地址或封鎖ID')
+    .setValue(cache.get('input_iporid') || '')
+    .setOnChangeAction(CardService.newAction().setFunctionName('onFormInputChange'));
+  section.addWidget(textInputIPorID);
+
+  if (parseResult.iporid.length > 0) {
+    var iporidButtonSet = CardService.newButtonSet();
+    parseResult.iporid.forEach(iporid => {
+      var button = CardService.newTextButton()
+        .setText(iporid)
+        .setOnClickAction(CardService.newAction()
+          .setFunctionName('updateInputValue')
+          .setParameters({ input_iporid: iporid })
+        )
+        .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
+      iporidButtonSet.addButton(button);
+    });
+    section.addWidget(iporidButtonSet);
+  }
+
+  // var res = accessProtectedResource(
+  //   'https://meta.wikimedia.org/w/api.php',
+  //   'GET',
+  //   {},
+  //   {
+  //     action: 'query',
+  //     format: 'json',
+  //     meta: 'globaluserinfo',
+  //     list: 'users',
+  //     usprop: 'cancreate|centralids',
+  //     usattachedwiki: 'zhwiki',
+  //     guiuser: cache.get('input_username'),
+  //     ususers: cache.get('input_username'),
+  //   }
+  // );
+  var res = apiRequest('GET', {
+    action: 'query',
+    meta: 'globaluserinfo',
+    list: 'users',
+    usprop: 'cancreate|centralids',
+    usattachedwiki: 'zhwiki',
+    guiuser: cache.get('input_username'),
+    ususers: cache.get('input_username'),
+  });
+  var user = res.query.users[0];
+  var usernameStatus = '';
+  if (user.userid) {
+    if (user.attachedwiki.CentralAuth) {
+      usernameStatus = 'exists';
+    } else {
+      usernameStatus = 'needs_local';
+    }
+  } else if (user.invalid) {
+    usernameStatus = 'banned';
+  } else if (user.cancreateerror) {
+    usernameStatus = 'not_exists';
+    var cancreateerror = user.cancreateerror[0];
+    if (cancreateerror.code === 'userexists') {
+      usernameStatus = 'needs_local';
+    } else if (cancreateerror.code === 'invaliduser') {
+      usernameStatus = 'banned';
+      usernameBannedDetail = '使用者名稱無效（電子郵件地址等）。';
+    } else if (cancreateerror.code === 'antispoof-name-illegal') {
+      usernameStatus = 'banned';
+      usernameBannedDetail = mw.msg('antispoof-name-illegal', ...cancreateerror.params);
+    } else if (cancreateerror.code === '_1') {
+      usernameStatus = 'banned';
+      usernameBannedDetail = mw.msg('antispoof-name-1', ...cancreateerror.params);
+    } else if (cancreateerror.code === '_1_2_3') {
+      usernameStatus = 'banned';
+      usernameBannedDetail = mw.msg('antispoof-name-123', ...cancreateerror.params);
+    } else {
+      usernameStatus = 'banned';
+    }
+  } else {
+    usernameStatus = 'not_exists';
+  }
+
+  console.log('userinfo', res);
+
+  var radioGroup = CardService.newSelectionInput()
+    .setType(CardService.SelectionInputType.RADIO_BUTTON)
+    .setFieldName('input_variant')
+    .addItem('簡體', 'zh-hans', true)
+    .addItem('繁體', 'zh-hant', false)
+    .setOnChangeAction(CardService.newAction().setFunctionName('onFormInputChange'));
+  section.addWidget(radioGroup);
+
   var card = CardService.newCardBuilder()
     .addSection(section);
 
   return card.build();
+}
+
+function updateInputValue(e) {
+  console.log(e.parameters);
+
+  for (const key in e.parameters) {
+    const value = e.parameters[key];
+    cache.put(key, value);
+  }
+
+  var navigation = CardService.newNavigation().updateCard(createCard(e));
+  var actionResponse = CardService.newActionResponseBuilder().setNavigation(navigation);
+  return actionResponse.build();
+}
+
+function onFormInputChange(e) {
+  console.log(e);
+
+  cache.put('input_username', e.formInput.input_username);
+  cache.put('input_email', e.formInput.input_email);
+  cache.put('input_iporid', e.formInput.input_iporid);
+
+  var navigation = CardService.newNavigation().updateCard(createCard(e));
+  var actionResponse = CardService.newActionResponseBuilder().setNavigation(navigation);
+  return actionResponse.build();
+}
+
+function openLinkCallback() {
+  return CardService.newActionResponseBuilder()
+    .setOpenLink(CardService.newOpenLink()
+      .setUrl('https://zh.wikipedia.org/wiki/Special:空白页面/unblock-zh-helper')
+      .setOpenAs(CardService.OpenAs.OVERLAY)
+    )
+    .build();
 }
 
 function onGrantIPBE(e) {
@@ -83,7 +296,7 @@ function onGrantIPBE(e) {
     'formatversion': '2',
     'type': 'userrights'
   });
-  var userrightstoken = JSON.parse(res).query.tokens.userrightstoken;
+  var userrightstoken = res.query.tokens.userrightstoken;
   var res = apiRequest('POST', {
     action: 'userrights',
     user: 'A2093064-test',
@@ -122,7 +335,15 @@ function onWriteMail(e) {
 
 
 function apiRequest(method_opt, payload) {
-  return accessProtectedResource('https://zh.wikipedia.org/w/api.php', method_opt, {}, payload);
+  payload = {
+    'format': 'json',
+    'formatversion': '2',
+    ...payload,
+  }
+  console.log('api', payload);
+  var res = accessProtectedResource('https://zh.wikipedia.org/w/api.php', method_opt, {}, payload);
+  console.log(res);
+  return JSON.parse(res);
 }
 
 
@@ -172,7 +393,7 @@ function getOAuthService() {
     .setClientSecret(CLIENT_SECRET)
     .setScope(SERVICE_SCOPE_REQUESTS)
     .setCallbackFunction('authCallback')
-    .setCache(CacheService.getUserCache())
+    .setCache(cache)
     .setPropertyStore(PropertiesService.getUserProperties());
 }
 
