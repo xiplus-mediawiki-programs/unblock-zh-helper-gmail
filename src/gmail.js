@@ -1,4 +1,4 @@
-var SERVICE_SCOPE_REQUESTS = 'basic highvolume editpage editprotected createeditmovepage createlocalaccount';
+var SERVICE_SCOPE_REQUESTS = 'basic highvolume editpage editprotected createeditmovepage createaccount createlocalaccount';
 
 var cache = CacheService.getUserCache();
 
@@ -8,20 +8,47 @@ function onGmailMessage(e) {
   var threadId = e.gmail.threadId;
 
   if (threadId != cache.get('threadId')) {
-    cache.removeAll([
-      'input_username',
-      'input_email',
-      'input_iporid',
-      'input_variant',
-    ]);
+    cache.remove('formData');
   }
 
   return createCard(e);
 }
 
+function getFormData() {
+  var formData = {
+    firstLoad: true,
+    needChecks: true,
+    requests: [],
+    username: '',
+    email: '',
+    ip: '',
+    actionOptions: [],
+    summary: '',
+    statusCreateAcccount: '',
+    statusCreateLocal: '',
+    statusGrantIpbe: '',
+    statusResetPasswordUsername: '',
+    statusResetPasswordEmail: '',
+    mailOptionsUsername: '',
+    mailOptionsIpbe: '',
+    mailOptionsOther: [],
+    mailOptionsVariant: 'zh-hans',
+  };
+  if (cache.get('formData')) {
+    formData = { ...formData, ...JSON.parse(cache.get('formData')) };
+  }
+  return formData;
+}
+
+function putFormData(formData) {
+  cache.put('formData', JSON.stringify(formData));
+}
+
 function createCard(e) {
   var messageId = e.gmail.messageId;
   var threadId = e.gmail.threadId;
+
+  var formData = getFormData();
 
   // console.log('cache: ' + JSON.stringify(cache.getAll([
   //   'input_username',
@@ -62,6 +89,11 @@ function createCard(e) {
   var requester = messages[0].getFrom();
   var subject = thread.getFirstMessageSubject();
 
+  var archiveUrl = parseArchiveUrl(messages[0].getHeader('Archived-At'));
+  if (!archiveUrl) {
+    archiveUrl = parseArchiveUrl(messages[0].getBody());
+  }
+
   var allMailText = subject + '\n';
   // text += 'subject: ' + subject + '\n';
 
@@ -90,50 +122,84 @@ function createCard(e) {
   // text += 'parseResult: ' + JSON.stringify(parseResult) + '\n';
   console.log('parseResult: ' + JSON.stringify(parseResult));
 
-  if (parseResult.username.length > 0 && !cache.get('input_username')) {
-    cache.put('input_username', parseResult.username[0]);
+  // fill missing formData
+  if (formData.firstLoad) {
+    if (parseResult.request.acc) {
+      formData.requests.push('CreateAccount');
+    }
+    if (parseResult.request.ipbe) {
+      formData.requests.push('GrantIpbe');
+    }
+    if (parseResult.request.password) {
+      formData.requests.push('ResetPassword');
+    }
+  }
+  if (!formData.username && parseResult.username.length > 0) {
+    formData.username = parseResult.username[0];
+  }
+  if (!formData.ip && parseResult.iporid.length > 0) {
+    formData.ip = parseResult.iporid[0];
+  }
+  if (!formData.email) {
+    formData.email = stripEmail(requester);
+  }
+  if (!formData.summary) {
+    formData.summary = '[[listarchive:' + archiveUrl + '|unblock-zh申請]]';
   }
 
-  if (parseResult.iporid.length > 0 && !cache.get('input_iporid')) {
-    cache.put('input_iporid', parseResult.iporid[0]);
+  // check status
+  if (formData.needChecks) {
+    formData = { ...formData, ...checkStatus(formData.username, formData.ip) };
+    putFormData(formData);
+    autoActionOptions();
+    autoMailOptions();
+    formData = getFormData();
   }
 
-  if (!cache.get('input_email')) {
-    cache.put('input_email', stripEmail(requester));
+  if (formData.firstLoad) {
+    formData.firstLoad = false;
+    putFormData(formData);
   }
 
   // Build card
-  var section = CardService.newCardSection();
+  var card = CardService.newCardBuilder()
 
-  var textParagraph = CardService.newTextParagraph().setText(text);
-  section.addWidget(textParagraph);
+  // section: header
+  // var sectionHeader = CardService.newCardSection();
 
-  var button = CardService.newTextButton()
-    .setText('Write mail')
-    .setComposeAction(
-      CardService.newAction()
-        .setFunctionName('onWriteMail')
-        .setParameters({ text: 'test' }),
-      CardService.ComposedEmailType.REPLY_AS_DRAFT
-    )
-    .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
+  // var textParagraph = CardService.newTextParagraph().setText(text);
+  // sectionHeader.addWidget(textParagraph);
 
-  var button2 = CardService.newTextButton()
-    .setText('Grant IPBE')
-    .setOnClickAction(CardService.newAction().setFunctionName('onGrantIPBE'))
-    .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
+  // card.addSection(sectionHeader);
 
-  var button3 = CardService.newTextButton()
-    .setText('Open Link')
-    .setOnClickOpenLinkAction(CardService.newAction().setFunctionName('openLinkCallback'))
-    .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
+  // section: input
+  var sectionInput = CardService.newCardSection()
+    .setHeader('填寫申請人給予的資料');
+
+  var reqCheckboxes = CardService.newSelectionInput()
+    .setType(CardService.SelectionInputType.CHECK_BOX)
+    .setTitle('要求操作')
+    .setFieldName('requests')
+    .addItem('建立帳號', 'CreateAccount', formData.requests.includes('CreateAccount'))
+    .addItem('授予IP封鎖例外權', 'GrantIpbe', formData.requests.includes('GrantIpbe'))
+    .addItem('重設密碼', 'ResetPassword', formData.requests.includes('ResetPassword'))
+    .setOnChangeAction(CardService.newAction()
+      .setFunctionName('updateSelectionInput')
+      .setParameters({ key: 'requests' })
+      .setLoadIndicator(CardService.LoadIndicator.SPINNER)
+    );
+  sectionInput.addWidget(reqCheckboxes);
 
   var textInputUsername = CardService.newTextInput()
-    .setFieldName('input_username')
+    .setFieldName('username')
     .setTitle('使用者名稱')
-    .setValue(cache.get('input_username') || '')
-    .setOnChangeAction(CardService.newAction().setFunctionName('onFormInputChange'));
-  section.addWidget(textInputUsername);
+    .setValue(formData.username)
+    .setOnChangeAction(CardService.newAction()
+      .setFunctionName('updateTextInput')
+      .setParameters({ key: 'username' })
+      .setLoadIndicator(CardService.LoadIndicator.SPINNER)
+    );
+  sectionInput.addWidget(textInputUsername);
 
   if (parseResult.username.length > 0) {
     var usernameButtonSet = CardService.newButtonSet();
@@ -142,27 +208,35 @@ function createCard(e) {
         .setText(username)
         .setOnClickAction(CardService.newAction()
           .setFunctionName('updateInputValue')
-          .setParameters({ input_username: username })
+          .setParameters({ username: username })
         )
         .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
       usernameButtonSet.addButton(button);
     });
-    section.addWidget(usernameButtonSet);
+    sectionInput.addWidget(usernameButtonSet);
   }
 
   var textInputEmail = CardService.newTextInput()
-    .setFieldName('input_email')
+    .setFieldName('email')
     .setTitle('電子郵件地址')
-    .setValue(cache.get('input_email') || '')
-    .setOnChangeAction(CardService.newAction().setFunctionName('onFormInputChange'));
-  section.addWidget(textInputEmail);
+    .setValue(formData.email)
+    .setOnChangeAction(CardService.newAction()
+      .setFunctionName('updateTextInput')
+      .setParameters({ key: 'email' })
+      .setLoadIndicator(CardService.LoadIndicator.SPINNER)
+    );
+  sectionInput.addWidget(textInputEmail);
 
   var textInputIPorID = CardService.newTextInput()
-    .setFieldName('input_iporid')
+    .setFieldName('ip')
     .setTitle('IP地址或封鎖ID')
-    .setValue(cache.get('input_iporid') || '')
-    .setOnChangeAction(CardService.newAction().setFunctionName('onFormInputChange'));
-  section.addWidget(textInputIPorID);
+    .setValue(formData.ip)
+    .setOnChangeAction(CardService.newAction()
+      .setFunctionName('updateTextInput')
+      .setParameters({ key: 'ip' })
+      .setLoadIndicator(CardService.LoadIndicator.SPINNER)
+    );
+  sectionInput.addWidget(textInputIPorID);
 
   if (parseResult.iporid.length > 0) {
     var iporidButtonSet = CardService.newButtonSet();
@@ -171,84 +245,273 @@ function createCard(e) {
         .setText(iporid)
         .setOnClickAction(CardService.newAction()
           .setFunctionName('updateInputValue')
-          .setParameters({ input_iporid: iporid })
+          .setParameters({ ip: iporid })
         )
         .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
       iporidButtonSet.addButton(button);
     });
-    section.addWidget(iporidButtonSet);
+    sectionInput.addWidget(iporidButtonSet);
   }
 
-  // var res = accessProtectedResource(
-  //   'https://meta.wikimedia.org/w/api.php',
-  //   'GET',
-  //   {},
-  //   {
-  //     action: 'query',
-  //     format: 'json',
-  //     meta: 'globaluserinfo',
-  //     list: 'users',
-  //     usprop: 'cancreate|centralids',
-  //     usattachedwiki: 'zhwiki',
-  //     guiuser: cache.get('input_username'),
-  //     ususers: cache.get('input_username'),
-  //   }
-  // );
-  var res = apiRequest('GET', {
-    action: 'query',
-    meta: 'globaluserinfo',
-    list: 'users',
-    usprop: 'cancreate|centralids',
-    usattachedwiki: 'zhwiki',
-    guiuser: cache.get('input_username'),
-    ususers: cache.get('input_username'),
-  });
-  var user = res.query.users[0];
-  var usernameStatus = '';
-  if (user.userid) {
-    if (user.attachedwiki.CentralAuth) {
-      usernameStatus = 'exists';
-    } else {
-      usernameStatus = 'needs_local';
+  card.addSection(sectionInput);
+
+  // section: info
+  var sectionInfo = CardService.newCardSection()
+    .setHeader('選擇您要進行的操作');
+
+  var statusText = '';
+
+  if (formData.normalizedUsername) {
+    if (formData.username != formData.normalizedUsername) {
+      statusText += '正規化為「' + formData.normalizedUsername + '」\n';
     }
-  } else if (user.invalid) {
-    usernameStatus = 'banned';
-  } else if (user.cancreateerror) {
-    usernameStatus = 'not_exists';
-    var cancreateerror = user.cancreateerror[0];
-    if (cancreateerror.code === 'userexists') {
-      usernameStatus = 'needs_local';
-    } else if (cancreateerror.code === 'invaliduser') {
-      usernameStatus = 'banned';
-      usernameBannedDetail = '使用者名稱無效（電子郵件地址等）。';
-    } else if (cancreateerror.code === 'antispoof-name-illegal') {
-      usernameStatus = 'banned';
-      usernameBannedDetail = mw.msg('antispoof-name-illegal', ...cancreateerror.params);
-    } else if (cancreateerror.code === '_1') {
-      usernameStatus = 'banned';
-      usernameBannedDetail = mw.msg('antispoof-name-1', ...cancreateerror.params);
-    } else if (cancreateerror.code === '_1_2_3') {
-      usernameStatus = 'banned';
-      usernameBannedDetail = mw.msg('antispoof-name-123', ...cancreateerror.params);
-    } else {
-      usernameStatus = 'banned';
+
+    if (formData.requests.includes('CreateAccount')) {
+      if (formData.usernameStatus === 'not_exists') {
+        var googleurl = 'https://www.google.com/search?q=' + encodeURIComponent(formData.normalizedUsername);
+        statusText += '✅ 帳號可以建立（<a href="' + googleurl + '">Google</a>）\n';
+      }
+
+      if (formData.usernameStatus === 'banned') {
+        statusText += '❌ 此使用者名稱被系統禁止'
+        if (formData.usernameBannedDetail) {
+          statusText += '：' + formData.usernameBannedDetail;
+        }
+        statusText += '\n';
+      }
     }
-  } else {
-    usernameStatus = 'not_exists';
+
+    if (!formData.requests.includes('CreateAccount') && (formData.usernameStatus === 'banned' || formData.usernameStatus === 'not_exists')) {
+      statusText += '❌ 帳號不存在\n';
+    }
+
+    if (formData.usernameStatus === 'needs_local') {
+      if (formData.requests.includes('CreateAccount')) {
+        statusText += '❌';
+      } else {
+        statusText += '✅';
+      }
+      var caurl = 'https://zh.wikipedia.org/wiki/Special:CentralAuth?target=' + encodeURIComponent(formData.normalizedUsername);
+      statusText += ' 需要強制建立本地帳號（<a href="' + caurl + '">全域帳號</a>）\n';
+    }
+
+    if (formData.usernameStatus === 'exists') {
+      if (formData.requests.includes('CreateAccount')) {
+        statusText += '❌';
+      } else {
+        statusText += '✅';
+      }
+      var caurl = 'https://zh.wikipedia.org/wiki/Special:CentralAuth?target=' + encodeURIComponent(formData.normalizedUsername);
+      var rightlog = 'https://zh.wikipedia.org/wiki/Special:Log/rights?page=' + encodeURIComponent('User:' + formData.normalizedUsername);
+      statusText += ' 帳號已被註冊（<a href="' + caurl + '">全域帳號</a>、<a href="' + rightlog + '">權限日誌</a>）\n';
+    }
+
+    if (formData.accountBlocked) {
+      var blocklog = 'https://zh.wikipedia.org/wiki/Special:Log/block?page=User:' + encodeURIComponent(formData.normalizedUsername);
+      statusText += '⛔️ <a href="' + blocklog + '">帳號被封鎖</a>\n';
+    }
   }
 
-  console.log('userinfo', res);
+  if (formData.ip) {
+    var blocklisturl = 'https://zh.wikipedia.org/wiki/Special:BlockList?wpTarget=' + formData.ip;
+    if (formData.blocked) {
+      if (formData.isProxyBlocked) {
+        statusText += '✅';
+      } else {
+        statusText += '⚠️';
+      }
+      statusText += ' IP被封鎖：' + formData.blockReason;
+    } else {
+      statusText += '❌ IP未被封鎖';
+    }
+    statusText += '（<a href="' + blocklisturl + '">檢查</a>）\n';
+  }
+
+  if (formData.accountHasIpbe) {
+    statusText += '❌ 使用者已擁有IPBE\n';
+  }
+
+  var statusTextParagraph = CardService.newTextParagraph().setText(statusText);
+  sectionInfo.addWidget(statusTextParagraph);
+
+  var actionCheckboxes = CardService.newSelectionInput()
+    .setType(CardService.SelectionInputType.CHECK_BOX)
+    .setFieldName('actionOptions')
+    .setOnChangeAction(CardService.newAction()
+      .setFunctionName('updateSelectionInput')
+      .setParameters({ key: 'actionOptions' })
+      .setLoadIndicator(CardService.LoadIndicator.SPINNER)
+    );
+
+  var anyAction = false;
+
+  if (formData.requests.includes('CreateAccount') && formData.usernameStatus === 'not_exists') {
+    actionCheckboxes.addItem('建立帳號' + formData.statusCreateAcccount,
+      'CreateAccount', formData.actionOptions.includes('CreateAccount'));
+    anyAction = true;
+  }
+
+  if (formData.requests.includes('CreateAccount') && formData.usernameStatus === 'needs_local') {
+    actionCheckboxes.addItem('強制建立本地帳號' + formData.statusCreateLocal,
+      'CreateLocal', formData.actionOptions.includes('CreateLocal'));
+    anyAction = true;
+  }
+
+  if (formData.normalizedUsername) {
+    actionCheckboxes.addItem('授予IPBE、通知、備案' + formData.statusGrantIpbe,
+      'GrantIpbe', formData.actionOptions.includes('GrantIpbe'));
+    anyAction = true;
+  }
+
+  if (formData.normalizedUsername) {
+    actionCheckboxes.addItem('重設「' + formData.normalizedUsername + '」密碼' + formData.statusResetPasswordEmail,
+      'ResetPasswordUsername', formData.actionOptions.includes('ResetPasswordUsername'));
+    anyAction = true;
+  }
+
+  if (formData.email) {
+    actionCheckboxes.addItem('重設「' + formData.email + '」密碼' + formData.statusResetPasswordEmail,
+      'ResetPasswordEmail', formData.actionOptions.includes('ResetPasswordEmail'));
+    anyAction = true;
+  }
+
+  if (anyAction) {
+    sectionInfo.addWidget(actionCheckboxes);
+  }
+
+  var textInputSummary = CardService.newTextInput()
+    .setFieldName('summary')
+    .setTitle('操作摘要')
+    .setValue(formData.summary)
+    .setOnChangeAction(CardService.newAction()
+      .setFunctionName('updateTextInput')
+      .setParameters({ key: 'summary' })
+      .setLoadIndicator(CardService.LoadIndicator.SPINNER)
+    );
+  sectionInfo.addWidget(textInputSummary);
+
+  var buttonRun = CardService.newTextButton()
+    .setText('以 ' + wpUsername + ' 的身分進行選定的操作')
+    .setOnClickAction(CardService.newAction().setFunctionName('runActions'))
+    .setTextButtonStyle(CardService.TextButtonStyle.FILLED);
+
+  sectionInfo.addWidget(buttonRun);
+
+  card.addSection(sectionInfo);
+
+  // section: mail
+  var sectionMail = CardService.newCardSection()
+    .setHeader('回覆郵件');
+
+  var mailContentCore = generateMailContent(formData);
+
+  var mailContent = mailContentCore;
+  mailContent += '\n\n' + mt('mail-reply-to-all');
+  mailContent += '\n\n' + 'User:' + wpUsername;
+
+  var mailContentParagraph = CardService.newTextParagraph()
+    .setText(mailContentCore);
+  sectionMail.addWidget(mailContentParagraph);
+
+  var mailButton = CardService.newTextButton()
+    .setText('產生郵件')
+    .setComposeAction(
+      CardService.newAction()
+        .setFunctionName('onWriteMail')
+        .setParameters({ mailBody: mailContent }),
+      CardService.ComposedEmailType.REPLY_AS_DRAFT
+    )
+    .setTextButtonStyle(CardService.TextButtonStyle.FILLED);
+  sectionMail.addWidget(mailButton);
+
+  var mailUsernameRadio = CardService.newSelectionInput()
+    .setType(CardService.SelectionInputType.RADIO_BUTTON)
+    .setTitle('使用者名稱')
+    .setFieldName('mailOptionsUsername')
+    .setType(CardService.SelectionInputType.DROPDOWN)
+    .addItem('未給', 'nousername', formData.mailOptionsUsername === 'nousername')
+    .addItem('已被占用', 'used', formData.mailOptionsUsername === 'used')
+    .addItem('被系統禁止', 'banned', formData.mailOptionsUsername === 'banned')
+    .addItem('違反方針', 'illeagal', formData.mailOptionsUsername === 'illeagal')
+    .addItem('已建立帳號', 'created', formData.mailOptionsUsername === 'created')
+    .addItem('已強制建立本地帳號', 'local', formData.mailOptionsUsername === 'local')
+    .addItem('申請IPBE所給帳號不存在', 'local', formData.mailOptionsUsername === 'not_exists')
+    .addItem('無', '', formData.mailOptionsUsername === '')
+    .setOnChangeAction(CardService.newAction()
+      .setFunctionName('updateTextInput')
+      .setParameters({ key: 'mailOptionsUsername' })
+      .setLoadIndicator(CardService.LoadIndicator.SPINNER)
+    );
+  sectionMail.addWidget(mailUsernameRadio);
+
+  var mailIpbeRadio = CardService.newSelectionInput()
+    .setType(CardService.SelectionInputType.RADIO_BUTTON)
+    .setTitle('IP地址')
+    .setFieldName('mailOptionsIpbe')
+    .setType(CardService.SelectionInputType.DROPDOWN)
+    .addItem('未給', 'noip', formData.mailOptionsIpbe === 'noip')
+    .addItem('未被封鎖', 'not_blocked', formData.mailOptionsIpbe === 'not_blocked')
+    .addItem('已授予IPBE', 'granted', formData.mailOptionsIpbe === 'granted')
+    .addItem('可能需要IPBE', 'may_need', formData.mailOptionsIpbe === 'may_need')
+    .addItem('無', '', formData.mailOptionsIpbe === '')
+    .setOnChangeAction(CardService.newAction()
+      .setFunctionName('updateTextInput')
+      .setParameters({ key: 'mailOptionsIpbe' })
+      .setLoadIndicator(CardService.LoadIndicator.SPINNER)
+    );
+  sectionMail.addWidget(mailIpbeRadio);
+
+  var mailOtherRadio = CardService.newSelectionInput()
+    .setType(CardService.SelectionInputType.RADIO_BUTTON)
+    .setFieldName('mailOptionsOther')
+    .setType(CardService.SelectionInputType.CHECK_BOX)
+    .addItem('已重設密碼', 'resetpwd', formData.mailOptionsOther.includes('resetpwd'))
+    .addItem('開放代理', 'proxy', formData.mailOptionsOther.includes('proxy'))
+    .addItem('段封鎖', 'range', formData.mailOptionsOther.includes('range'))
+    .addItem('英文百科封鎖', 'enwiki', formData.mailOptionsOther.includes('enwiki'))
+    .addItem('全域封鎖', 'gipbe', formData.mailOptionsOther.includes('gipbe'))
+    .addItem('公司/組織', 'company', formData.mailOptionsOther.includes('company'))
+    .addItem('自動登出', 'autologout', formData.mailOptionsOther.includes('autologout'))
+    .addItem('更名', 'rename', formData.mailOptionsOther.includes('rename'))
+    .addItem('尋站內', 'talkpage', formData.mailOptionsOther.includes('talkpage'))
+    .addItem('已申訴', 'requested', formData.mailOptionsOther.includes('requested'))
+    .addItem('無法理解', 'nonsense', formData.mailOptionsOther.includes('nonsense'))
+    .addItem('非申訴', 'wrongplace', formData.mailOptionsOther.includes('wrongplace'))
+    .setOnChangeAction(CardService.newAction()
+      .setFunctionName('updateSelectionInput')
+      .setParameters({ key: 'mailOptionsOther' })
+      .setLoadIndicator(CardService.LoadIndicator.SPINNER)
+    );
+  sectionMail.addWidget(mailOtherRadio);
 
   var radioGroup = CardService.newSelectionInput()
-    .setType(CardService.SelectionInputType.RADIO_BUTTON)
-    .setFieldName('input_variant')
+    .setTitle('語言變體')
+    .setType(CardService.SelectionInputType.DROPDOWN)
+    .setFieldName('mailOptionsVariant')
     .addItem('簡體', 'zh-hans', true)
     .addItem('繁體', 'zh-hant', false)
-    .setOnChangeAction(CardService.newAction().setFunctionName('onFormInputChange'));
-  section.addWidget(radioGroup);
+    .setOnChangeAction(CardService.newAction()
+      .setFunctionName('updateTextInput')
+      .setParameters({ key: 'mailOptionsVariant' })
+      .setLoadIndicator(CardService.LoadIndicator.SPINNER)
+    );
+  sectionMail.addWidget(radioGroup);
 
-  var card = CardService.newCardBuilder()
-    .addSection(section);
+  card.addSection(sectionMail);
+
+  // section: debug
+  var sectionDebug = CardService.newCardSection()
+    .setHeader('Debug')
+    .setCollapsible(true);
+
+  var debugText = '';
+  for (var key in formData) {
+    debugText += key + ': ' + JSON.stringify(formData[key]) + '\n';
+  }
+
+  sectionDebug.addWidget(CardService.newTextParagraph().setText(debugText));
+
+  card.addSection(sectionDebug);
 
   return card.build();
 }
@@ -256,62 +519,395 @@ function createCard(e) {
 function updateInputValue(e) {
   console.log(e.parameters);
 
+  var formData = getFormData();
   for (const key in e.parameters) {
-    const value = e.parameters[key];
-    cache.put(key, value);
+    formData[key] = e.parameters[key];
+
+    if (key === 'username' || key === 'ip') {
+      formData.needChecks = true;
+    }
+  }
+  putFormData(formData);
+
+  var navigation = CardService.newNavigation().updateCard(createCard(e));
+  var actionResponse = CardService.newActionResponseBuilder().setNavigation(navigation).setStateChanged(true);
+  return actionResponse.build();
+}
+
+function updateTextInput(e) {
+  console.log('formInput', JSON.stringify(e.formInput));
+  console.log('parameters', JSON.stringify(e.parameters));
+
+  var formData = getFormData();
+  var key = e.parameters.key;
+  var newVal = e.formInput[key] || '';
+  console.log('Update "' + key + '" from "' + formData[key] + '" to "' + newVal + '"');
+
+  formData[key] = newVal;
+  if (key === 'username' || key === 'ip') {
+    formData.needChecks = true;
+  }
+  putFormData(formData);
+
+  var navigation = CardService.newNavigation().updateCard(createCard(e));
+  var actionResponse = CardService.newActionResponseBuilder().setNavigation(navigation).setStateChanged(true);
+  return actionResponse.build();
+}
+
+function updateSelectionInput(e) {
+  console.log('formInputs', JSON.stringify(e.formInputs));
+  console.log('parameters', JSON.stringify(e.parameters));
+
+  var formData = getFormData();
+  var newVal = e.formInputs[e.parameters.key] || [];
+  console.log('Update "' + e.parameters.key + '" from "' + JSON.stringify(formData[e.parameters.key]) + '" to "' + JSON.stringify(newVal) + '"');
+  formData[e.parameters.key] = newVal;
+  putFormData(formData);
+
+  if (e.parameters.key === 'requests' || e.parameters.key === 'actionOptions') {
+    autoMailOptions();
   }
 
   var navigation = CardService.newNavigation().updateCard(createCard(e));
-  var actionResponse = CardService.newActionResponseBuilder().setNavigation(navigation);
+  var actionResponse = CardService.newActionResponseBuilder().setNavigation(navigation).setStateChanged(true);
   return actionResponse.build();
 }
 
-function onFormInputChange(e) {
-  console.log(e);
+function autoActionOptions() {
+  var formData = getFormData();
 
-  cache.put('input_username', e.formInput.input_username);
-  cache.put('input_email', e.formInput.input_email);
-  cache.put('input_iporid', e.formInput.input_iporid);
+  console.log('autoActionOptions', JSON.stringify(formData));
 
-  var navigation = CardService.newNavigation().updateCard(createCard(e));
-  var actionResponse = CardService.newActionResponseBuilder().setNavigation(navigation);
-  return actionResponse.build();
+  var userToBeCreated = false;
+  if (formData.requests.includes('CreateAccount')) {
+    if (formData.normalizedUsername) {
+      if (formData.usernameStatus == 'not_exists') {
+        formData.actionOptions.push('CreateAccount');
+        formData.mailOptionsUsername = 'created';
+        userToBeCreated = true;
+      } else if (formData.usernameStatus == 'banned') {
+        formData.mailOptionsUsername = 'banned';
+      } else if (formData.usernameStatus == 'exists') {
+        formData.mailOptionsUsername = 'used';
+      }
+    } else {
+      formData.mailOptionsUsername = 'nousername';
+    }
+  }
+  if (
+    formData.requests.includes('GrantIpbe') &&
+    ((!formData.requests.includes('CreateAccount') &&
+      (formData.usernameStatus === 'exists' || formData.usernameStatus == 'needs_local')) ||
+      userToBeCreated) &&
+    formData.ip &&
+    formData.blocked &&
+    !formData.accountBlocked &&
+    !formData.accountHasIpbe
+  ) {
+    if (formData.usernameStatus == 'needs_local') {
+      formData.actionOptions.push('CreateLocal');
+    }
+    if (formData.isProxyBlocked) {
+      formData.actionOptions.push('GrantIpbe');
+    }
+  }
+  if (formData.requests.includes('ResetPassword')) {
+    if (formData.username) {
+      if (!formData.requests.includes('CreateAccount') && formData.usernameStatus == 'needs_local') {
+        formData.actionOptions.push('CreateLocal');
+      }
+      formData.actionOptions.push('ResetPasswordUser');
+    } else if (formData.email) {
+      formData.actionOptions.push('ResetPasswordEmail');
+    }
+  }
+
+  formData.actionOptions = [...new Set(formData.actionOptions)];
+
+  putFormData(formData);
 }
 
-function openLinkCallback() {
-  return CardService.newActionResponseBuilder()
-    .setOpenLink(CardService.newOpenLink()
-      .setUrl('https://zh.wikipedia.org/wiki/Special:空白页面/unblock-zh-helper')
-      .setOpenAs(CardService.OpenAs.OVERLAY)
+function autoMailOptions() {
+  var formData = getFormData();
+
+  // username
+  formData.mailOptionsUsername = '';
+  if (formData.actionOptions.includes('CreateAccount')) {
+    formData.mailOptionsUsername = 'created';
+  } else if (formData.actionOptions.includes('CreateLocal')) {
+    formData.mailOptionsUsername = 'local';
+  } else if (formData.requests.includes('CreateAccount')) {
+    if (formData.normalizedUsername) {
+      if (formData.usernameStatus == 'exists' || formData.usernameStatus == 'needs_local') {
+        formData.mailOptionsUsername = 'used';
+      } else if (formData.usernameStatus == 'banned') {
+        formData.mailOptionsUsername = 'banned';
+      }
+    } else {
+      formData.mailOptionsUsername = 'nousername';
+    }
+  } else if (formData.requests.includes('GrantIpbe')) {
+    if (!formData.normalizedUsername) {
+      formData.mailOptionsUsername = 'nousername';
+    } else if (formData.usernameStatus == 'banned' || formData.usernameStatus == 'not_exists') {
+      formData.mailOptionsUsername = 'not_exists';
+    }
+  } else if (formData.inputBlockAppeal) {
+    if (!formData.normalizedUsername) {
+      formData.mailOptionsUsername = 'nousername';
+    }
+  } else if (formData.inputResetPassword) {
+    if (!formData.normalizedUsername && !formData.email) {
+      formData.mailOptionsUsername = 'nousername';
+    }
+  }
+
+  // ipbe
+  formData.mailOptionsIpbe = '';
+  if (formData.actionOptions.includes('GrantIpbe')) {
+    formData.mailOptionsIpbe = 'granted';
+  } else {
+    if (formData.requests.includes('GrantIpbe')) {
+      if (formData.ip) {
+        if (!formData.blocked) {
+          formData.mailOptionsIpbe = 'not_blocked';
+        }
+      } else {
+        formData.mailOptionsIpbe = 'noip';
+      }
+    } else if (formData.inputBlockAppeal && !formData.ip) {
+      formData.mailOptionsIpbe = 'noip';
+    }
+  }
+
+  // reset password
+  formData.mailOptionsOther = formData.mailOptionsOther.filter((key) => key !== 'resetpwd');
+  if (formData.actionOptions.includes('ResetPasswordUsername')
+    || formData.actionOptions.includes('ResetPasswordEmail')) {
+    formData.mailOptionsOther.push('resetpwd');
+  }
+
+  putFormData(formData);
+}
+
+function runActions(e) {
+  // console.log(e);
+
+  var formData = getFormData();
+
+  if (formData.actionOptions.length === 0) {
+    var actionResponse = CardService.newActionResponseBuilder()
+      .setNotification(CardService.newNotification()
+        .setText('沒什麼好做的'))
+      .build();
+    return actionResponse;
+  }
+
+  if (formData.actionOptions.includes('ResetPasswordUsername') && formData.actionOptions.includes('ResetPasswordEmail')) {
+    var actionResponse = CardService.newActionResponseBuilder()
+      .setNotification(CardService.newNotification()
+        .setText('重設密碼選項僅能選取一個'))
+      .build();
+    return actionResponse;
+  }
+
+  if (
+    !formData.summary &&
+    !(formData.actionOptions.length === 1 &&
+      (formData.actionOptions.includes('ResetPasswordUsername') ||
+        formData.actionOptions.includes('ResetPasswordEmail'))
     )
-    .build();
-}
+  ) {
+    var actionResponse = CardService.newActionResponseBuilder()
+      .setNotification(CardService.newNotification()
+        .setText('請輸入操作摘要'))
+      .build();
+    return actionResponse;
+  }
 
-function onGrantIPBE(e) {
-  console.log(e);
+  if (formData.actionOptions.includes('CreateAccount') && !formData.email) {
+    var actionResponse = CardService.newActionResponseBuilder()
+      .setNotification(CardService.newNotification()
+        .setText('請輸入Email'))
+      .build();
+    return actionResponse;
+  }
+
   var res = apiRequest('POST', {
     'action': 'query',
-    'format': 'json',
     'meta': 'tokens',
-    'formatversion': '2',
-    'type': 'userrights'
+    'type': 'userrights|csrf|createaccount'
   });
-  var userrightstoken = res.query.tokens.userrightstoken;
-  var res = apiRequest('POST', {
-    action: 'userrights',
-    user: 'A2093064-test',
-    add: 'ipblock-exempt',
-    expiry: '1 day',
-    reason: 'Test',
-    token: userrightstoken,
-    format: 'json',
-    'formatversion': '2',
-  });
-  console.log(res);
+  var tokens = res.query.tokens;
+  console.log('tokens', tokens);
+
+  if (formData.actionOptions.includes('CreateAccount') && formData.normalizedUsername) {
+    var res = apiRequest('POST', {
+      action: 'createaccount',
+      username: formData.normalizedUsername,
+      email: formData.email,
+      // realname: '',
+      mailpassword: '1',
+      reason: formData.summary,
+      createreturnurl: 'https://zh.wikipedia.org',
+      createtoken: tokens.createaccounttoken,
+    })
+    console.log('createaccount', res);
+
+    if (res.createaccount.status === 'FAIL') {
+      formData.statusCreateAcccount = ' ❌ ' + res.createaccount.message;
+    } else if (res.createaccount.status === 'PASS') {
+      formData.statusCreateAcccount = ' ✅';
+    } else {
+      formData.statusCreateAcccount = ' ❌ 未知錯誤';
+    }
+  }
+
+  if (formData.actionOptions.includes('CreateLocal') && formData.normalizedUsername) {
+    var res = apiRequest('POST', {
+      action: 'createlocalaccount',
+      username: formData.normalizedUsername,
+      reason: formData.summary,
+      token: tokens.csrftoken,
+    })
+    console.log('createlocalaccount', res);
+
+    if (res.error) {
+      if (res.error[0] && res.error[0][0] && res.error[0][0].code) {
+        formData.statusCreateLocal = ' ❌ ' + res.error[0][0].code;
+      } else {
+        formData.statusCreateLocal = ' ❌ 未知錯誤';
+      }
+    } else {
+      formData.statusCreateLocal = ' ✅';
+    }
+  }
+
+  if (formData.actionOptions.includes('GrantIpbe') && formData.normalizedUsername) {
+    /*
+    var res = apiRequest('POST', {
+      action: 'userrights',
+      user: formData.normalizedUsername,
+      add: 'ipblock-exempt',
+      expiry: 'infinite',
+      reason: '+IP封鎖例外，' + formData.summary,
+      token: tokens.userrightstoken,
+    });
+    console.log('userrights', res);
+
+    formData.statusGrantIpbe = ' ✅';
+
+    // notice
+    var message = '{{subst:Ipexempt granted}}';
+    var usertalk = 'User talk:' + formData.normalizedUsername;
+    var res = apiRequest('GET', {
+      action: 'query',
+      prop: 'info',
+      titles: usertalk,
+    });
+    console.log('usertalk info', res);
+    var page = res.query.pages[0];
+    if (page.contentmodel === 'flow-board') {
+      var res = apiRequest('POST', {
+        action: 'flow',
+        page: usertalk,
+        submodule: 'new-topic',
+        nttopic: '授予IP封鎖例外權通知',
+        ntcontent: message,
+        ntformat: 'wikitext',
+      });
+
+      if (res.error) {
+        if (res.error.info) {
+          formData.statusGrantIpbe += '❌ ' + res.error.info;
+        } else {
+          formData.statusGrantIpbe += '❌ 未知錯誤';
+        }
+      } else {
+        formData.statusGrantIpbe += '✅';
+      }
+    } else {
+      var res = apiRequest('POST', {
+        'action': 'edit',
+        'title': usertalk,
+        'section': 'new',
+        'sectiontitle': '',
+        'text': '{{subst:Ipexempt granted}}',
+        'summary': '授予IP封鎖例外權通知',
+        'token': tokens.csrftoken,
+      });
+
+      if (res.error) {
+        if (res.error.info) {
+          formData.statusGrantIpbe += '❌ ' + res.error.info;
+        } else {
+          formData.statusGrantIpbe += '❌ 未知錯誤';
+        }
+      } else {
+        formData.statusGrantIpbe += '✅';
+      }
+    }
+*/
+    // rfipbe
+    var summary = '[[Special:UserRights/' + formData.normalizedUsername + '|授予' + formData.normalizedUsername + 'IP封禁例外權]]備案';
+    var appendtext = '\n\n{{subst:rfp|1=' + formData.normalizedUsername + '|2=經由' + formData.summary + '的授權備案。|status=+}}';
+    var res = apiRequest('POST', {
+      'action': 'edit',
+      'title': 'Wikipedia:權限申請/申請IP封禁例外權',
+      'summary': summary,
+      'appendtext': appendtext,
+      'token': tokens.csrftoken,
+    });
+    console.log('rfipbe', res);
+    if (res.error) {
+      if (res.error.info) {
+        formData.statusGrantIpbe += '❌ ' + res.error.info;
+      } else {
+        formData.statusGrantIpbe += '❌ 未知錯誤';
+      }
+    } else {
+      formData.statusGrantIpbe += '✅';
+    }
+  }
+
+  if (formData.actionOptions.includes('ResetPasswordUsername') && formData.normalizedUsername) {
+    var res = apiRequest('POST', {
+      action: 'resetpassword',
+      user: formData.normalizedUsername,
+      token: tokens.csrftoken,
+    });
+    console.log('resetpassword username', res);
+    if (res.resetpassword && res.resetpassword.status === 'success') {
+      formData.statusResetPasswordUsername = ' ✅';
+    } else {
+      formData.statusResetPasswordUsername = ' ❌ 未知錯誤';
+    }
+  }
+
+  if (formData.actionOptions.includes('ResetPasswordEmail') && formData.normalizedUsername) {
+    var res = apiRequest('POST', {
+      action: 'resetpassword',
+      email: formData.email,
+      token: tokens.csrftoken,
+    });
+    console.log('resetpassword email', res);
+    if (res.resetpassword && res.resetpassword.status === 'success') {
+      formData.statusResetPasswordUsername = ' ✅';
+    } else {
+      formData.statusResetPasswordUsername = ' ❌ 未知錯誤';
+    }
+  }
+
+  putFormData(formData);
+
+  var navigation = CardService.newNavigation().updateCard(createCard(e));
+  var actionResponse = CardService.newActionResponseBuilder().setNavigation(navigation).setStateChanged(true);
+  return actionResponse.build();
 }
 
 function onWriteMail(e) {
-  console.log(e)
+  // console.log(e)
+
   var accessToken = e.gmail.accessToken;
   GmailApp.setCurrentMessageAccessToken(accessToken);
 
@@ -323,11 +919,12 @@ function onWriteMail(e) {
   var lastMessage = allMessages[allMessages.length - 1];
   var draft = thread.createDraftReply('');
 
-  var recipient = firstMessage.getFrom() + ',unblock-zh@lists.wikimedia.org';
-  console.log('recipient: ' + recipient);
+  var recipient = stripEmail(firstMessage.getFrom()) + ',unblock-zh@lists.wikimedia.org';
   var subject = lastMessage.getSubject();
-  var body = '測試2\n\n';
-  draft.update(recipient, subject, body);
+  var body = e.parameters.mailBody;
+  console.log('recipient: ' + recipient);
+  console.log('subject: ' + subject);
+  draft.update(recipient, subject, body + '\n');
 
   return CardService.newComposeActionResponseBuilder()
     .setGmailDraft(draft).build();
@@ -342,7 +939,6 @@ function apiRequest(method_opt, payload) {
   }
   console.log('api', payload);
   var res = accessProtectedResource('https://zh.wikipedia.org/w/api.php', method_opt, {}, payload);
-  console.log(res);
   return JSON.parse(res);
 }
 

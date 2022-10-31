@@ -1,5 +1,18 @@
 import { expect, test, describe } from 'vitest';
-import { parseMailBody, stripEmail, stripMailQuote } from '../src/util.js';
+import { parseArchiveUrl, parseMailBody, stripEmail, stripMailQuote } from '../src/util.js';
+
+describe('test strip archive url', async () => {
+	test('in header', async () => {
+		expect(parseArchiveUrl('<https://lists.wikimedia.org/hyperkitty/list/unblock-zh@lists.wikimedia.org/message/ABC123/>')).toBe('list/unblock-zh@lists.wikimedia.org/message/ABC123/')
+	});
+
+	test('in body', async () => {
+		expect(parseArchiveUrl(`Unblock-zh邮件列表
+unblock-zh@lists.wikimedia.org
+https://lists.wikimedia.org/hyperkitty/list/unblock-zh@lists.wikimedia.org/message/ABC123/`)
+		).toBe('list/unblock-zh@lists.wikimedia.org/message/ABC123/')
+	});
+});
 
 describe('test strip mail quote', async () => {
 	test('type 1', async () => {
@@ -25,14 +38,23 @@ describe('test strip mail quote', async () => {
 		expect(stripEmail('"Al ice" <alice@example.org>')).toBe('alice@example.org');
 	});
 
-	test('request', async () => {
+	test('request acct', async () => {
+		expect(parseMailBody('账号创建申请').request.acc).toBeTruthy();
+		expect(parseMailBody('申请注册账户').request.acc).toBeTruthy();
+	});
+
+	test('request ipbe', async () => {
 		expect(parseMailBody('账号创建申请').request.acc).toBeTruthy();
 		expect(parseMailBody('申请注册账户').request.acc).toBeTruthy();
 	});
 
 	test('username', async () => {
-		expect(parseMailBody('我想注册的用户名是"Example"，').username[0]).toBe('Example');
-		expect(parseMailBody('申请注册账户[Example]').username[0]).toBe('Example');
+		expect(parseMailBody('我想注册的用户名是"Example"，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('希望使用的用户名是[Example]，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('我的用户名是Example，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('我的用户名是Example。').username).toStrictEqual(['Example']);
+		expect(parseMailBody('用户名是[Example]，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('申请注册账户[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册账户[A] 申请注册账户[B]').username).toStrictEqual(['B', 'A']);
 	});
 
