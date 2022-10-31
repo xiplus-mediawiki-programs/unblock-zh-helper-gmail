@@ -919,8 +919,8 @@ function onWriteMail(e) {
   var lastMessage = allMessages[allMessages.length - 1];
   var draft = thread.createDraftReply('');
 
-  var recipient = stripEmail(firstMessage.getFrom()) + ',unblock-zh@lists.wikimedia.org';
   var subject = lastMessage.getSubject();
+  var recipient = stripEmail(firstMessage.getFrom()) + ',' + UNBLOCK_ZH_MAIL;
   var body = e.parameters.mailBody;
   console.log('recipient: ' + recipient);
   console.log('subject: ' + subject);
