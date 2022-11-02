@@ -961,6 +961,8 @@ function sendMail(e) {
 
   var draft = thread.createDraftReply('');
   draft.update(recipient, subject, body + '\n');
+  var msg = draft.send();
+  console.log('msg', msg);
 
   return CardService.newActionResponseBuilder()
     .setNotification(CardService.newNotification()
