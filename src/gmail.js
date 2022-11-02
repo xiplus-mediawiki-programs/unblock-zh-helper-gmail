@@ -593,7 +593,10 @@ function updateSelectionInput(e) {
   formData[e.parameters.key] = newVal;
   putFormData(formData);
 
-  if (e.parameters.key === 'requests' || e.parameters.key === 'actionOptions') {
+  if (e.parameters.key === 'requests') {
+    autoActionOptions();
+    autoMailOptions();
+  } else if (e.parameters.key === 'actionOptions') {
     autoMailOptions();
   }
 
