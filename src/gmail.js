@@ -134,6 +134,10 @@ function createCard(e) {
     if (parseResult.request.password) {
       formData.requests.push('ResetPassword');
     }
+    if (!parseResult.request.acc && !parseResult.request.ipbe && !parseResult.request.password) {
+      formData.requests.push('CreateAccount');
+      formData.requests.push('GrantIpbe');
+    }
   }
   if (!formData.username && parseResult.username.length > 0) {
     formData.username = parseResult.username[0];
