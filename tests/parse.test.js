@@ -71,5 +71,6 @@ describe('parseMailBody', async () => {
 	test('ip', async () => {
 		expect(parseMailBody('IP地址是[123.45.6.78]').iporid[0]).toBe('123.45.6.78');
 		expect(parseMailBody('查封ID是#123456').iporid[0]).toBe('#123456');
+		expect(parseMailBody('blocked by ID#123456.').iporid[0]).toBe('#123456');
 	});
 });
