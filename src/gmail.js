@@ -363,7 +363,7 @@ function createCard(e) {
     anyAction = true;
   }
 
-  if (formData.requests.includes('CreateAccount') && formData.usernameStatus === 'needs_local') {
+  if (formData.usernameStatus === 'needs_local') {
     actionCheckboxes.addItem('強制建立本地帳號' + formData.statusCreateLocal,
       'CreateLocal', formData.actionOptions.includes('CreateLocal'));
     anyAction = true;
