@@ -41,6 +41,7 @@ function parseMailBody(text) {
   }
 
   var matches = [
+    ...text.matchAll(/用户名：(.+?)\n/g),
     ...text.matchAll(/用户名是"(.+?)"/g),
     ...text.matchAll(/用户名是\[(.+?)\]/g),
     ...text.matchAll(/用户名是([^\[\]"]+?)[，。]/g),

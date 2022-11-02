@@ -60,6 +60,7 @@ describe('parseMailBody', async () => {
 	test('username', async () => {
 		expect(parseMailBody('我想注册的用户名是"Example"，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望使用的用户名是[Example]，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('用户名：Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名是Example，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名是Example。').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名是[Example]，').username).toStrictEqual(['Example']);
