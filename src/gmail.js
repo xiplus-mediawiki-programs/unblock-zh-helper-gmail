@@ -88,6 +88,7 @@ function createCard(e) {
   var messages = thread.getMessages();
   var requester = messages[0].getFrom();
   var subject = thread.getFirstMessageSubject();
+  var lastSubject = messages[messages.length - 1].getSubject();
 
   var archiveUrl = parseArchiveUrl(messages[0].getHeader('Archived-At'));
   if (!archiveUrl) {
@@ -413,16 +414,33 @@ function createCard(e) {
     .setText(mailContentCore);
   sectionMail.addWidget(mailContentParagraph);
 
-  var mailButton = CardService.newTextButton()
-    .setText('產生郵件')
+  var mailButtonSet = CardService.newButtonSet();
+
+  var replySecipient = formData.email + ',' + UNBLOCK_ZH_MAIL;
+  var replySubject = getReplySubject(lastSubject);
+
+  var createDraftButton = CardService.newTextButton()
+    .setText('產生草稿')
     .setComposeAction(
       CardService.newAction()
-        .setFunctionName('onWriteMail')
-        .setParameters({ mailBody: mailContent }),
+        .setFunctionName('createDraft')
+        .setParameters({ recipient: replySecipient, subject: replySubject, body: mailContent }),
       CardService.ComposedEmailType.REPLY_AS_DRAFT
     )
     .setTextButtonStyle(CardService.TextButtonStyle.FILLED);
-  sectionMail.addWidget(mailButton);
+  mailButtonSet.addButton(createDraftButton);
+
+  var sendMailButton = CardService.newTextButton()
+    .setText('直接回信')
+    .setOnClickAction(
+      CardService.newAction()
+        .setFunctionName('sendMail')
+        .setParameters({ recipient: replySecipient, subject: replySubject, body: mailContent })
+    )
+    .setTextButtonStyle(CardService.TextButtonStyle.FILLED);
+  mailButtonSet.addButton(sendMailButton);
+
+  sectionMail.addWidget(mailButtonSet);
 
   var mailUsernameRadio = CardService.newSelectionInput()
     .setType(CardService.SelectionInputType.RADIO_BUTTON)
@@ -905,7 +923,7 @@ function runActions(e) {
   return actionResponse.build();
 }
 
-function onWriteMail(e) {
+function createDraft(e) {
   // console.log(e)
 
   var accessToken = e.gmail.accessToken;
@@ -914,20 +932,41 @@ function onWriteMail(e) {
   var messageId = e.gmail.messageId;
   var message = GmailApp.getMessageById(messageId);
   var thread = message.getThread();
-  var allMessages = thread.getMessages();
-  var firstMessage = allMessages[0];
-  var lastMessage = allMessages[allMessages.length - 1];
-  var draft = thread.createDraftReply('');
 
-  var subject = lastMessage.getSubject();
-  var recipient = stripEmail(firstMessage.getFrom()) + ',' + UNBLOCK_ZH_MAIL;
-  var body = e.parameters.mailBody;
-  console.log('recipient: ' + recipient);
-  console.log('subject: ' + subject);
+  var recipient = e.parameters.recipient;
+  var subject = e.parameters.subject;
+  var body = e.parameters.body;
+
+  var draft = thread.createDraftReply('');
   draft.update(recipient, subject, body + '\n');
 
-  return CardService.newComposeActionResponseBuilder()
-    .setGmailDraft(draft).build();
+  return CardService.newActionResponseBuilder()
+    .setNotification(CardService.newNotification()
+      .setText('已建立草稿，請重新載入郵件'))
+    .build();
+}
+
+function sendMail(e) {
+  // console.log(e)
+
+  var accessToken = e.gmail.accessToken;
+  GmailApp.setCurrentMessageAccessToken(accessToken);
+
+  var messageId = e.gmail.messageId;
+  var message = GmailApp.getMessageById(messageId);
+  var thread = message.getThread();
+
+  var recipient = e.parameters.recipient;
+  var subject = e.parameters.subject;
+  var body = e.parameters.body;
+
+  var draft = thread.createDraftReply('');
+  draft.update(recipient, subject, body + '\n');
+
+  return CardService.newActionResponseBuilder()
+    .setNotification(CardService.newNotification()
+      .setText('已發送郵件'))
+    .build();
 }
 
 

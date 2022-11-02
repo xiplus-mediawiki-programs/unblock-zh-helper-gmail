@@ -66,6 +66,13 @@ function parseMailBody(text) {
   return result;
 }
 
+function getReplySubject(subject) {
+  if (/^Re:/.test(subject)) {
+    return subject;
+  }
+  return 'Re: ' + subject;
+}
+
 var curMailVariant = 'zh-hans';
 
 function mt(key, params) {
@@ -274,5 +281,6 @@ if (typeof module === 'object') {
     stripEmail: stripEmail,
     stripMailQuote: stripMailQuote,
     parseMailBody: parseMailBody,
+    getReplySubject: getReplySubject,
   };
 }

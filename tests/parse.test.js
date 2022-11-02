@@ -1,7 +1,7 @@
 import { expect, test, describe } from 'vitest';
-import { parseArchiveUrl, parseMailBody, stripEmail, stripMailQuote } from '../src/util.js';
+import { getReplySubject, parseArchiveUrl, parseMailBody, stripEmail, stripMailQuote } from '../src/util.js';
 
-describe('test strip archive url', async () => {
+describe('parseArchiveUrl', async () => {
 	test('in header', async () => {
 		expect(parseArchiveUrl('<https://lists.wikimedia.org/hyperkitty/list/unblock-zh@lists.wikimedia.org/message/ABC123/>')).toBe('list/unblock-zh@lists.wikimedia.org/message/ABC123/')
 	});
@@ -14,7 +14,7 @@ https://lists.wikimedia.org/hyperkitty/list/unblock-zh@lists.wikimedia.org/messa
 	});
 });
 
-describe('test strip mail quote', async () => {
+describe('stripMailQuote', async () => {
 	test('type 1', async () => {
 		expect(stripMailQuote(`User:Xiplus
 
@@ -31,13 +31,22 @@ ________________________________
 	});
 });
 
-describe('test strip mail quote', async () => {
+describe('stripEmail', async () => {
 	test('email', async () => {
 		expect(stripEmail('alice@example.org')).toBe('alice@example.org');
 		expect(stripEmail('Alice <alice@example.org>')).toBe('alice@example.org');
 		expect(stripEmail('"Al ice" <alice@example.org>')).toBe('alice@example.org');
 	});
+});
 
+describe('getReplySubject', async () => {
+	test('email', async () => {
+		expect(getReplySubject('Test')).toBe('Re: Test');
+		expect(getReplySubject('Re: Test')).toBe('Re: Test');
+	});
+});
+
+describe('parseMailBody', async () => {
 	test('request acct', async () => {
 		expect(parseMailBody('账号创建申请').request.acc).toBeTruthy();
 		expect(parseMailBody('申请注册账户').request.acc).toBeTruthy();
