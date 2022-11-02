@@ -802,7 +802,6 @@ function runActions(e) {
   }
 
   if (formData.actionOptions.includes('GrantIpbe') && formData.normalizedUsername) {
-    /*
     var res = apiRequest('POST', {
       action: 'userrights',
       user: formData.normalizedUsername,
@@ -865,7 +864,7 @@ function runActions(e) {
         formData.statusGrantIpbe += '✅';
       }
     }
-*/
+
     // rfipbe
     var summary = '[[Special:UserRights/' + formData.normalizedUsername + '|授予' + formData.normalizedUsername + 'IP封禁例外權]]備案';
     var appendtext = '\n\n{{subst:rfp|1=' + formData.normalizedUsername + '|2=經由' + formData.summary + '的授權備案。|status=+}}';
