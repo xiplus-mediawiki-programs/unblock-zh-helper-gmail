@@ -86,7 +86,10 @@ function createCard(e) {
 
   // Parse mails
   var messages = thread.getMessages();
-  var requester = messages[0].getFrom();
+  var requester = stripEmail(messages[0].getFrom());
+  if (requester === UNBLOCK_ZH_MAIL) {
+    requester = stripEmail(messages[0].getCc());
+  }
   var subject = thread.getFirstMessageSubject();
   var lastSubject = messages[messages.length - 1].getSubject();
 
@@ -100,7 +103,11 @@ function createCard(e) {
 
   // text += 'messages:\n';
   messages.forEach((message, idx) => {
-    var mailFrom = message.getFrom();
+    var mailFrom = stripEmail(message.getFrom());
+    if (mailFrom === UNBLOCK_ZH_MAIL) {
+      mailFrom = stripEmail(message.getCc());
+    }
+
     if (mailFrom != requester) {
       return;
     }
