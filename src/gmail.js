@@ -802,7 +802,7 @@ function runActions(e) {
       reason: formData.summary,
       token: tokens.csrftoken,
     })
-    console.log('createlocalaccount', res);
+    console.log('createlocalaccount: ' + JSON.stringify(res));
 
     if (res.error) {
       if (res.error[0] && res.error[0][0] && res.error[0][0].code) {
@@ -824,80 +824,94 @@ function runActions(e) {
       reason: '+IP封鎖例外，' + formData.summary,
       token: tokens.userrightstoken,
     });
-    console.log('userrights', res);
+    console.log('userrights: ' + JSON.stringify(res));
 
-    formData.statusGrantIpbe = ' ✅';
-
-    // notice
-    var message = '{{subst:Ipexempt granted}}';
-    var usertalk = 'User talk:' + formData.normalizedUsername;
-    var res = apiRequest('GET', {
-      action: 'query',
-      prop: 'info',
-      titles: usertalk,
-    });
-    console.log('usertalk info', res);
-    var page = res.query.pages[0];
-    if (page.contentmodel === 'flow-board') {
-      var res = apiRequest('POST', {
-        action: 'flow',
-        page: usertalk,
-        submodule: 'new-topic',
-        nttopic: '授予IP封鎖例外權通知',
-        ntcontent: message,
-        ntformat: 'wikitext',
-      });
-
-      if (res.error) {
-        if (res.error.info) {
-          formData.statusGrantIpbe += '❌ ' + res.error.info;
-        } else {
-          formData.statusGrantIpbe += '❌ 未知錯誤';
-        }
+    var grantOk = true;
+    if (res.error) {
+      grantOk = false;
+      if (res.error.info) {
+        formData.statusGrantIpbe = ' ❌ ' + res.error.info;
       } else {
-        formData.statusGrantIpbe += '✅';
+        formData.statusGrantIpbe = ' ❌ 未知錯誤';
       }
     } else {
-      var res = apiRequest('POST', {
-        'action': 'edit',
-        'title': usertalk,
-        'section': 'new',
-        'sectiontitle': '',
-        'text': '{{subst:Ipexempt granted}}',
-        'summary': '授予IP封鎖例外權通知',
-        'token': tokens.csrftoken,
-      });
-
-      if (res.error) {
-        if (res.error.info) {
-          formData.statusGrantIpbe += '❌ ' + res.error.info;
-        } else {
-          formData.statusGrantIpbe += '❌ 未知錯誤';
-        }
-      } else {
-        formData.statusGrantIpbe += '✅';
-      }
+      formData.statusGrantIpbe = ' ✅';
     }
 
-    // rfipbe
-    var summary = '[[Special:UserRights/' + formData.normalizedUsername + '|授予' + formData.normalizedUsername + 'IP封禁例外權]]備案';
-    var appendtext = '\n\n{{subst:rfp|1=' + formData.normalizedUsername + '|2=經由' + formData.summary + '的授權備案。|status=+}}';
-    var res = apiRequest('POST', {
-      'action': 'edit',
-      'title': 'Wikipedia:權限申請/申請IP封禁例外權',
-      'summary': summary,
-      'appendtext': appendtext,
-      'token': tokens.csrftoken,
-    });
-    console.log('rfipbe', res);
-    if (res.error) {
-      if (res.error.info) {
-        formData.statusGrantIpbe += '❌ ' + res.error.info;
+    // notice
+    if (grantOk) {
+      var message = '{{subst:Ipexempt granted}}';
+      var usertalk = 'User talk:' + formData.normalizedUsername;
+      var res = apiRequest('GET', {
+        action: 'query',
+        prop: 'info',
+        titles: usertalk,
+      });
+      console.log('usertalk info', res);
+      var page = res.query.pages[0];
+      if (page.contentmodel === 'flow-board') {
+        var res = apiRequest('POST', {
+          action: 'flow',
+          page: usertalk,
+          submodule: 'new-topic',
+          nttopic: '授予IP封鎖例外權通知',
+          ntcontent: message,
+          ntformat: 'wikitext',
+        });
+        console.log('notice on wikitext: ' + JSON.stringify(res));
+
+        if (res.error) {
+          if (res.error.info) {
+            formData.statusGrantIpbe += '❌ ' + res.error.info;
+          } else {
+            formData.statusGrantIpbe += '❌ 未知錯誤';
+          }
+        } else {
+          formData.statusGrantIpbe += '✅';
+        }
       } else {
-        formData.statusGrantIpbe += '❌ 未知錯誤';
+        var res = apiRequest('POST', {
+          'action': 'edit',
+          'title': usertalk,
+          'section': 'new',
+          'sectiontitle': '',
+          'text': '{{subst:Ipexempt granted}}',
+          'summary': '授予IP封鎖例外權通知',
+          'token': tokens.csrftoken,
+        });
+        console.log('notice on flow: ' + JSON.stringify(res));
+
+        if (res.error) {
+          if (res.error.info) {
+            formData.statusGrantIpbe += '❌ ' + res.error.info;
+          } else {
+            formData.statusGrantIpbe += '❌ 未知錯誤';
+          }
+        } else {
+          formData.statusGrantIpbe += '✅';
+        }
       }
-    } else {
-      formData.statusGrantIpbe += '✅';
+
+      // rfipbe
+      var summary = '[[Special:UserRights/' + formData.normalizedUsername + '|授予' + formData.normalizedUsername + 'IP封禁例外權]]備案';
+      var appendtext = '\n\n{{subst:rfp|1=' + formData.normalizedUsername + '|2=經由' + formData.summary + '的授權備案。|status=+}}';
+      var res = apiRequest('POST', {
+        'action': 'edit',
+        'title': 'Wikipedia:權限申請/申請IP封禁例外權',
+        'summary': summary,
+        'appendtext': appendtext,
+        'token': tokens.csrftoken,
+      });
+      console.log('rfipbe: ' + JSON.stringify(res));
+      if (res.error) {
+        if (res.error.info) {
+          formData.statusGrantIpbe += '❌ ' + res.error.info;
+        } else {
+          formData.statusGrantIpbe += '❌ 未知錯誤';
+        }
+      } else {
+        formData.statusGrantIpbe += '✅';
+      }
     }
   }
 
