@@ -13,6 +13,15 @@ function stripEmail(text) {
   return text;
 }
 
+function cleanHtml(text) {
+  return text
+    .replace(/<\/dd>/g, '\n')
+    .replace(/<\/div>/g, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\n\n+/g, '\n');
+}
+
 function stripMailQuote(text) {
   text = text.replace(/\r\n/g, '\n');
   text = text.replace(/\r/g, '\n');

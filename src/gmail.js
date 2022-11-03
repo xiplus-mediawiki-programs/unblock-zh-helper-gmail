@@ -113,9 +113,7 @@ function createCard(e) {
     }
 
     var mailBody = message.getBody()
-      .replace(/<[^>]+>/g, '\n')
-      .replace(/\r\n/g, '\n')
-      .replace(/\n\n+/g, '\n');
+    mailBody = cleanHtml(mailBody);
     mailBody = stripMailQuote(mailBody);
 
     allMailText += mailBody + '\n';
