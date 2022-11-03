@@ -272,7 +272,7 @@ function createCard(e) {
 
   // section: info
   var sectionInfo = CardService.newCardSection()
-    .setHeader('選擇您要進行的操作');
+    .setHeader('檢查結果');
 
   var statusText = '';
 
@@ -352,6 +352,7 @@ function createCard(e) {
   var actionCheckboxes = CardService.newSelectionInput()
     .setType(CardService.SelectionInputType.CHECK_BOX)
     .setFieldName('actionOptions')
+    .setTitle('選擇您要進行的操作')
     .setOnChangeAction(CardService.newAction()
       .setFunctionName('updateSelectionInput')
       .setParameters({ key: 'actionOptions' })
