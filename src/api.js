@@ -61,7 +61,11 @@ function checkStatus(username, ip) {
         result.usernameBannedDetail = '使用者名稱無效：' + cancreateerror.params[1];
       } else if (cancreateerror.code === '_1') {
         result.usernameStatus = 'banned';
-        result.usernameBannedDetail = cancreateerror.params[0];
+        result.usernameBannedDetail = cancreateerror.params[0]
+          .replace('<ul>', ' ')
+          .replace(/<\/li><li>/g, '", "')
+          .replace(/<\/?li>/g, '"')
+          .replace('</ul>', '. ');
       } else if (cancreateerror.code === '_1_2_3') {
         result.usernameStatus = 'banned';
         result.usernameBannedDetail = cancreateerror.params[0] + cancreateerror.params[1] + cancreateerror.params[2];
