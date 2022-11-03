@@ -421,15 +421,19 @@ function createCard(e) {
   mailContent += '\n\n' + mt('mail-reply-to-all');
   mailContent += '\n\n' + 'User:' + wpUsername;
 
-  var mailContentParagraph = CardService.newTextParagraph()
-    .setText(mailContentCore);
-  sectionMail.addWidget(mailContentParagraph);
+  var mailContentInput = CardService.newTextInput()
+    .setFieldName('mailContent')
+    .setTitle('郵件內容')
+    .setMultiline(true)
+    .setValue(mailContent);
+  sectionMail.addWidget(mailContentInput);
 
   var mailButtonSet = CardService.newButtonSet();
 
   var replySecipient = formData.email + ',' + UNBLOCK_ZH_MAIL;
   var replySubject = getReplySubject(lastSubject);
 
+  /*
   var createDraftButton = CardService.newTextButton()
     .setText('產生草稿')
     .setComposeAction(
@@ -452,6 +456,7 @@ function createCard(e) {
   mailButtonSet.addButton(sendMailButton);
 
   sectionMail.addWidget(mailButtonSet);
+  */
 
   var mailUsernameRadio = CardService.newSelectionInput()
     .setType(CardService.SelectionInputType.RADIO_BUTTON)
