@@ -51,14 +51,20 @@ function parseMailBody(text) {
 
   var matches = [
     ...text.matchAll(/(?:[账帐][户号]|用户名)是?[：:]?"(.+?)"/g),
+    ...text.matchAll(/(?:[账帐][户号]|用户名)是?[：:]?“(.+?)”/g),
     ...text.matchAll(/(?:[账帐][户号]|用户名)是?[：:]?【(.+?)】/g),
     ...text.matchAll(/(?:[账帐][户号]|用户名)是?[：:]?\[(.+?)\]/g),
-    ...text.matchAll(/(?:[账帐][户号]|用户名)(?:[是：:]|是[：:])\n?([^\[\]【】"：:，。\n]+)[，。\n]/g),
+    ...text.matchAll(/(?:[账帐][户号]|用户名)(?:[是：:]|是[：:])\n?([^\[\]【】"“”：:，。\n]+)[，。\n]/g),
     ...text.matchAll(/user ?name.{0,20} is (.+?)\./g),
+    ...text.matchAll(/user ?name: ([^,.]+?)[.,]/g),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
-    if (!result.username.includes(match[1])) {
-      result.username.push(match[1]);
+    var username = match[1].replace(/_/g, ' ');
+    if (['请求的账户名称'].includes(username)) {
+     continue;
+    }
+    if (!result.username.includes(username)) {
+      result.username.push(username);
     }
   }
 
@@ -70,7 +76,6 @@ function parseMailBody(text) {
   for (var match of matches) {
     // extra test for ipv6
     if (/((?:[a-f0-9:]+:+)+[a-f0-9]+)/.test(match[1])) {
-      console.log(match[1]);
       if (/^(?::(?::|(?::[0-9A-Fa-f]{1,4}){1,7})|[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4}){0,6}::|[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4}){7})$/.test(match[1])) {
         result.iporid.push(match[1]);
         continue

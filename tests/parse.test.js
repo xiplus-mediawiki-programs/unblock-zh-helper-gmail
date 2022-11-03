@@ -64,6 +64,7 @@ describe('parseMailBody', async () => {
 	test('username', async () => {
 		expect(parseMailBody('我想注册的用户名是"Example"，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望使用的用户名是[Example]，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('使用的用户名是“Example”').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望使用的用户名是：【Example】').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名：Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名是Example，').username).toStrictEqual(['Example']);
@@ -76,11 +77,17 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('用户名是[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册账户[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册帐户【Example】').username).toStrictEqual(['Example']);
+		// two name
 		expect(parseMailBody('申请注册账户[A] 申请注册账户[B]').username).toStrictEqual(['B', 'A']);
-
+		// underline
+		expect(parseMailBody('我的用户名是Foo_Bar。').username).toStrictEqual(['Foo Bar']);
+		// english
 		expect(parseMailBody('The user name I want to use is Example.').username).toStrictEqual(['Example']);
-
+		expect(parseMailBody('username: Example,').username).toStrictEqual(['Example']);
+		// false positive
 		expect(parseMailBody('我的账号被封锁，').username).toStrictEqual([]);
+		// blacklist
+		expect(parseMailBody('申请注册账户[请求的账户名称]').username).toStrictEqual([]);
 	});
 
 	test('ipv4', async () => {
