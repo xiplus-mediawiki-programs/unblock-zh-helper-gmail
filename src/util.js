@@ -177,7 +177,7 @@ function generateMailContent(formData) {
   if (formData.mailOptionsUsername === 'nousername') {
     if (formData.mailOptionsOther.includes('proxy')) {
       // pass for proxy
-    } else if (formData.inputCreateAccount) {
+    } else if (formData.requests.includes('CreateAccount')) {
       pleaseProvide.push(mt('mail-wanted-username') + useUsernameChecker);
     } else if (formData.requests.includes('GrantIpbe')) {
       pleaseProvide.push(
