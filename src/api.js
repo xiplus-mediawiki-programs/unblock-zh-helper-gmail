@@ -41,7 +41,7 @@ function checkStatus(username, ip) {
     var user = res.query.users[0];
     result.normalizedUsername = user.name;
     if (user.userid) {
-      if (user.attachedwiki.CentralAuth) {
+      if (user.attachedwiki.CentralAuth === '') {
         result.usernameStatus = 'exists';
       } else {
         result.usernameStatus = 'needs_local';
