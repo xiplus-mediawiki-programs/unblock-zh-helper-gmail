@@ -98,7 +98,7 @@ function checkStatus(username, ip) {
   }
   if (ip) {
     query.list.push('blocks');
-    query.bkprop = 'by|reason';
+    query.bkprop = 'by|reason|userid';
     if (/^#\d+$/.test(ip)) {
       query.bkids = ip.substr(1);
     } else {
@@ -139,9 +139,13 @@ function checkStatus(username, ip) {
 
   // ip block
   if (res.query.blocks && res.query.blocks.length > 0) {
-    result.blocked = true;
-    result.blockBy = res.query.blocks[0].by;
-    result.blockReason = res.query.blocks[0].reason;
+    var block = res.query.blocks[0];
+    // ignore account blocks
+    if (block.userid === 0 || block.userid === undefined) {
+      result.blocked = true;
+      result.blockBy = res.query.blocks[0].by;
+      result.blockReason = res.query.blocks[0].reason;
+    }
   }
   if (res.query.globalblocks && res.query.globalblocks.length > 0) {
     result.blocked = true;
