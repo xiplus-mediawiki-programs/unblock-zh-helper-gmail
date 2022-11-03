@@ -328,7 +328,7 @@ function createCard(e) {
   }
 
   if (formData.ip) {
-    var blocklisturl = 'https://zh.wikipedia.org/wiki/Special:BlockList?wpTarget=' + formData.ip;
+    var blocklisturl = 'https://zh.wikipedia.org/wiki/Special:BlockList?wpTarget=' + encodeURIComponent(formData.ip);
     if (formData.blocked) {
       if (formData.isProxyBlocked) {
         statusText += '✅';
