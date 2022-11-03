@@ -54,6 +54,7 @@ describe('parseMailBody', async () => {
 
 	test('request ipbe', async () => {
 		expect(parseMailBody('申请IP封禁例外').request.ipbe).toBeTruthy();
+		expect(parseMailBody('IP封禁豁免申请').request.ipbe).toBeTruthy();
 	});
 
 	test('username', async () => {
@@ -62,6 +63,8 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('用户名：Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名是Example，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名是Example。').username).toStrictEqual(['Example']);
+		expect(parseMailBody('我的用户名是Example\n').username).toStrictEqual(['Example']);
+		expect(parseMailBody('我的用户名是：Example。').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名是[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册账户[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册账户[A] 申请注册账户[B]').username).toStrictEqual(['B', 'A']);
@@ -73,6 +76,7 @@ describe('parseMailBody', async () => {
 
 	test('ipv6', async () => {
 		expect(parseMailBody('IP 地址是2000:1234::a12b:12aa:fe34:9ab8，').iporid[0]).toBe('2000:1234::a12b:12aa:fe34:9ab8');
+		expect(parseMailBody('11:22').iporid).toStrictEqual([]);
 	});
 
 	test('block id', async () => {

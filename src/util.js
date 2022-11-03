@@ -36,7 +36,7 @@ function parseMailBody(text) {
   if (text.match(/账号创建申请|申请注册账户/)) {
     result.request.acc = true;
   }
-  if (text.match(/申请IP封禁(豁免|例外)/)) {
+  if (text.match(/申请IP封禁(豁免|例外)|IP封禁(豁免|例外)申请/)) {
     result.request.ipbe = true;
   }
 
@@ -44,7 +44,7 @@ function parseMailBody(text) {
     ...text.matchAll(/用户名：(.+?)\n/g),
     ...text.matchAll(/用户名是"(.+?)"/g),
     ...text.matchAll(/用户名是\[(.+?)\]/g),
-    ...text.matchAll(/用户名是([^\[\]"]+?)[，。]/g),
+    ...text.matchAll(/用户名是：?([^\[\]"，。\n]+)/g),
     ...text.matchAll(/申请注册账户\[(.+?)\]/g),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
@@ -55,15 +55,27 @@ function parseMailBody(text) {
 
   var matches = [
     ...text.matchAll(/((?:\d{1,3}\.){3}\d{1,3})/g),
-    ...text.matchAll(/((?:[0-9a-f]|:){1,4}(?::(?:[0-9a-f]{0,4})*){1,7})/g),
+    ...text.matchAll(/((?:[a-f0-9:]+:+)+[a-f0-9]+)/g),
     ...text.matchAll(/查封ID是(#\d{6})/g),
     ...text.matchAll(/ID(#\d{6})/g),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
-    if (!result.iporid.includes(match[1])) {
+    // extra test for ipv6
+    if (/((?:[a-f0-9:]+:+)+[a-f0-9]+)/.test(match[1])) {
+      console.log(match[1]);
+      if (/^(?::(?::|(?::[0-9A-Fa-f]{1,4}){1,7})|[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4}){0,6}::|[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4}){7})$/.test(match[1])) {
+        result.iporid.push(match[1]);
+        continue
+      }
+      if (/^[0-9A-Fa-f]{1,4}(?:::?[0-9A-Fa-f]{1,4}){1,6}$/.test(match[1]) && /::/.test(match[1])) {
+        result.iporid.push(match[1]);
+        continue
+      }
+    } else {
       result.iporid.push(match[1]);
     }
   }
+  result.iporid = [...new Set(result.iporid)];
 
   return result;
 }
