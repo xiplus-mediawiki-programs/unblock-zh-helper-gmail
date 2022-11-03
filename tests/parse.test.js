@@ -53,8 +53,7 @@ describe('parseMailBody', async () => {
 	});
 
 	test('request ipbe', async () => {
-		expect(parseMailBody('账号创建申请').request.acc).toBeTruthy();
-		expect(parseMailBody('申请注册账户').request.acc).toBeTruthy();
+		expect(parseMailBody('申请IP封禁例外').request.ipbe).toBeTruthy();
 	});
 
 	test('username', async () => {
