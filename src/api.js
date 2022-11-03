@@ -19,45 +19,26 @@ function checkStatus(username, ip) {
     return result;
   }
 
-  var query = {
-    action: 'query',
-    list: [],
-  }
-
   if (username) {
-    query.meta = 'globaluserinfo';
-    query.list.push('users');
-    query.usprop = 'blockinfo|cancreate|centralids|registration|groupmemberships';
-    query.ususers = username;
-    query.usattachedwiki = 'zhwiki';
-    query.guiuser = username;
-  }
-  if (ip) {
-    query.list.push('blocks');
-    query.bkprop = 'by|reason';
-    if (/^#\d+$/.test(ip)) {
-      query.bkids = ip.substr(1);
-    } else {
-      query.list.push('globalblocks');
-      query.bkip = ip;
-      query.bgprop = 'by|reason';
-      query.bgip = ip;
+    var payload = {
+      action: 'query',
+      format: 'json',
+      meta: 'globaluserinfo',
+      list: 'users',
+      usprop: 'cancreate|centralids',
+      usattachedwiki: 'zhwiki',
+      guiuser: username,
+      ususers: username,
     }
-  }
+    var resp = UrlFetchApp.fetch('https://login.wikimedia.org/w/api.php', {
+      'method': 'GET',
+      'payload': payload,
+      'muteHttpExceptions': true,
+    });
+    var res = JSON.parse(resp.getContentText('utf-8'));
+    console.log('check result 1', JSON.stringify(res));
 
-  query.list = query.list.join('|');
-
-  var res = apiRequest('GET', query);
-  console.log('check result', JSON.stringify(res));
-
-  if (!res.query) {
-    return result;
-  }
-
-  if (res.query.users) {
     var user = res.query.users[0];
-
-    // username
     result.normalizedUsername = user.name;
     if (user.userid) {
       if (user.attachedwiki.CentralAuth) {
@@ -80,10 +61,10 @@ function checkStatus(username, ip) {
         result.usernameBannedDetail = '使用者名稱無效：' + cancreateerror.params[1];
       } else if (cancreateerror.code === '_1') {
         result.usernameStatus = 'banned';
-        result.usernameBannedDetail = '使用者名稱無效：' + cancreateerror.params[0];
+        result.usernameBannedDetail = cancreateerror.params[0];
       } else if (cancreateerror.code === '_1_2_3') {
         result.usernameStatus = 'banned';
-        result.usernameBannedDetail = '使用者名稱無效：' + cancreateerror.params[0] + cancreateerror.params[1] + cancreateerror.params[2];
+        result.usernameBannedDetail = cancreateerror.params[0] + cancreateerror.params[1] + cancreateerror.params[2];
       } else {
         result.usernameStatus = 'banned';
       }
@@ -93,6 +74,42 @@ function checkStatus(username, ip) {
     if (res.query.globaluserinfo && res.query.globaluserinfo.registration) {
       result.usernameRegistration = res.query.globaluserinfo.registration;
     }
+  }
+
+  var query = {
+    action: 'query',
+    list: [],
+  }
+
+  if (username) {
+    query.list.push('users');
+    query.usprop = 'blockinfo|registration|groupmemberships';
+    query.ususers = username;
+  }
+  if (ip) {
+    query.list.push('blocks');
+    query.bkprop = 'by|reason';
+    if (/^#\d+$/.test(ip)) {
+      query.bkids = ip.substr(1);
+    } else {
+      query.list.push('globalblocks');
+      query.bkip = ip;
+      query.bgprop = 'by|reason';
+      query.bgip = ip;
+    }
+  }
+
+  query.list = query.list.join('|');
+
+  var res = apiRequest('GET', query);
+  console.log('check result 2', JSON.stringify(res));
+
+  if (!res.query) {
+    return result;
+  }
+
+  if (res.query.users) {
+    var user = res.query.users[0];
 
     // account block and ipbe
     if (user.blockid) {
