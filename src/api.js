@@ -38,42 +38,48 @@ function checkStatus(username, ip) {
     var res = JSON.parse(resp.getContentText('utf-8'));
     console.log('check result 1', JSON.stringify(res));
 
-    var user = res.query.users[0];
-    result.normalizedUsername = user.name;
-    if (user.userid) {
-      if (user.attachedwiki.CentralAuth === '') {
-        result.usernameStatus = 'exists';
+    if (!res.query) {
+      return result;
+    }
+
+    if (res.query.users) {
+      var user = res.query.users[0];
+      result.normalizedUsername = user.name;
+      if (user.userid) {
+        if (user.attachedwiki.CentralAuth === '') {
+          result.usernameStatus = 'exists';
+        } else {
+          result.usernameStatus = 'needs_local';
+        }
+      } else if (user.invalid) {
+        result.usernameStatus = 'banned';
+      } else if (user.cancreateerror) {
+        result.usernameStatus = 'not_exists';
+        var cancreateerror = user.cancreateerror[0];
+        if (cancreateerror.code === 'userexists') {
+          result.usernameStatus = 'needs_local';
+        } else if (cancreateerror.code === 'invaliduser') {
+          result.usernameStatus = 'banned';
+          result.usernameBannedDetail = '使用者名稱無效（電子郵件地址等）。';
+        } else if (cancreateerror.code === 'antispoof-name-illegal') {
+          result.usernameStatus = 'banned';
+          result.usernameBannedDetail = '使用者名稱無效：' + cancreateerror.params[1];
+        } else if (cancreateerror.code === '_1') {
+          result.usernameStatus = 'banned';
+          result.usernameBannedDetail = cancreateerror.params[0]
+            .replace('<ul>', ' ')
+            .replace(/<\/li><li>/g, '", "')
+            .replace(/<\/?li>/g, '"')
+            .replace('</ul>', '. ');
+        } else if (cancreateerror.code === '_1_2_3') {
+          result.usernameStatus = 'banned';
+          result.usernameBannedDetail = cancreateerror.params[0] + cancreateerror.params[1] + cancreateerror.params[2];
+        } else {
+          result.usernameStatus = 'banned';
+        }
       } else {
-        result.usernameStatus = 'needs_local';
+        result.usernameStatus = 'not_exists';
       }
-    } else if (user.invalid) {
-      result.usernameStatus = 'banned';
-    } else if (user.cancreateerror) {
-      result.usernameStatus = 'not_exists';
-      var cancreateerror = user.cancreateerror[0];
-      if (cancreateerror.code === 'userexists') {
-        result.usernameStatus = 'needs_local';
-      } else if (cancreateerror.code === 'invaliduser') {
-        result.usernameStatus = 'banned';
-        result.usernameBannedDetail = '使用者名稱無效（電子郵件地址等）。';
-      } else if (cancreateerror.code === 'antispoof-name-illegal') {
-        result.usernameStatus = 'banned';
-        result.usernameBannedDetail = '使用者名稱無效：' + cancreateerror.params[1];
-      } else if (cancreateerror.code === '_1') {
-        result.usernameStatus = 'banned';
-        result.usernameBannedDetail = cancreateerror.params[0]
-          .replace('<ul>', ' ')
-          .replace(/<\/li><li>/g, '", "')
-          .replace(/<\/?li>/g, '"')
-          .replace('</ul>', '. ');
-      } else if (cancreateerror.code === '_1_2_3') {
-        result.usernameStatus = 'banned';
-        result.usernameBannedDetail = cancreateerror.params[0] + cancreateerror.params[1] + cancreateerror.params[2];
-      } else {
-        result.usernameStatus = 'banned';
-      }
-    } else {
-      result.usernameStatus = 'not_exists';
     }
     if (res.query.globaluserinfo && res.query.globaluserinfo.registration) {
       result.usernameRegistration = res.query.globaluserinfo.registration;
