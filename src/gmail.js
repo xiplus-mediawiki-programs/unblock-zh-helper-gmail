@@ -402,12 +402,23 @@ function createCard(e) {
     );
   sectionInfo.addWidget(textInputSummary);
 
-  var buttonRun = CardService.newTextButton()
-    .setText('以 ' + wpUsername + ' 的身分進行選定的操作')
+  var runButtonSet = CardService.newButtonSet();
+
+  var runButton = CardService.newTextButton()
+    .setText('以 ' + wpUsername + ' 的身分執行')
     .setOnClickAction(CardService.newAction().setFunctionName('runActions'))
     .setTextButtonStyle(CardService.TextButtonStyle.FILLED);
+  runButtonSet.addButton(runButton);
 
-  sectionInfo.addWidget(buttonRun);
+  var checkChangsButton = CardService.newTextButton()
+    .setText('複查')
+    .setOpenLink(
+      CardService.newOpenLink().setUrl('https://zh.wikipedia.org/wiki/Special:RecentChanges?hidebyothers=1')
+    )
+    .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
+  runButtonSet.addButton(checkChangsButton);
+
+  sectionInfo.addWidget(runButtonSet);
 
   card.addSection(sectionInfo);
 
