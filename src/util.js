@@ -42,10 +42,10 @@ function parseMailBody(text) {
 
   var matches = [
     ...text.matchAll(/用户名：(.+?)\n/g),
-    ...text.matchAll(/用户名是"(.+?)"/g),
-    ...text.matchAll(/用户名是\[(.+?)\]/g),
-    ...text.matchAll(/用户名是：?([^\[\]"，。\n]+)/g),
-    ...text.matchAll(/申请注册账户\[(.+?)\]/g),
+    ...text.matchAll(/(?:申请注册[账帐]户|用户名是)：?"(.+?)"/g),
+    ...text.matchAll(/(?:申请注册[账帐]户|用户名是)：?【(.+?)】/g),
+    ...text.matchAll(/(?:申请注册[账帐]户|用户名是)：?\[(.+?)\]/g),
+    ...text.matchAll(/用户名是：?([^\[\]【】"：，。\n]+)/g),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
     if (!result.username.includes(match[1])) {
