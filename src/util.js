@@ -55,7 +55,7 @@ function parseMailBody(text) {
 
   var matches = [
     ...text.matchAll(/((?:\d{1,3}\.){3}\d{1,3})/g),
-    ...text.matchAll(/((?::(?::|(?::[0-9A-Fa-f]{1,4}){1,7})|[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4}){0,6}::|[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4}){7}))/g),
+    ...text.matchAll(/((?:[0-9a-f]|:){1,4}(?::(?:[0-9a-f]{0,4})*){1,7})/g),
     ...text.matchAll(/查封ID是(#\d{6})/g),
     ...text.matchAll(/ID(#\d{6})/g),
   ].sort((a, b) => b.index - a.index);

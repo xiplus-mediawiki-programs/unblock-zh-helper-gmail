@@ -68,8 +68,15 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('申请注册账户[A] 申请注册账户[B]').username).toStrictEqual(['B', 'A']);
 	});
 
-	test('ip', async () => {
+	test('ipv4', async () => {
 		expect(parseMailBody('IP地址是[123.45.6.78]').iporid[0]).toBe('123.45.6.78');
+	});
+
+	test('ipv6', async () => {
+		expect(parseMailBody('IP 地址是2000:1234::a12b:12aa:fe34:9ab8，').iporid[0]).toBe('2000:1234::a12b:12aa:fe34:9ab8');
+	});
+
+	test('block id', async () => {
 		expect(parseMailBody('查封ID是#123456').iporid[0]).toBe('#123456');
 		expect(parseMailBody('blocked by ID#123456.').iporid[0]).toBe('#123456');
 	});
