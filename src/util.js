@@ -36,7 +36,7 @@ function parseMailBody(text) {
   if (text.match(/账号创建申请|申请注册账户/)) {
     result.request.acc = true;
   }
-  if (text.match(/申请IP封禁(豁免|例外)|IP封禁(豁免|例外)申请/)) {
+  if (text.match(/申请IP封禁(豁免|例外)|IP封禁(豁免|例外)申请|blocked proxy|open (proxy|proxies)/)) {
     result.request.ipbe = true;
   }
 
