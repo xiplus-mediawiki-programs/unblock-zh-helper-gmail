@@ -624,6 +624,7 @@ function updateSelectionInput(e) {
 function autoActionOptions() {
   var formData = getFormData();
 
+  formData.actionOptions = [];
   console.log('autoActionOptions', JSON.stringify(formData));
 
   var userToBeCreated = false;
