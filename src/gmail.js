@@ -962,9 +962,13 @@ function runActions(e) {
 
   putFormData(formData);
 
-  var navigation = CardService.newNavigation().updateCard(createCard(e));
-  var actionResponse = CardService.newActionResponseBuilder().setNavigation(navigation).setStateChanged(true);
-  return actionResponse.build();
+  return CardService.newActionResponseBuilder()
+    .setNavigation(CardService.newNavigation()
+      .updateCard(createCard(e)))
+    .setNotification(CardService.newNotification()
+      .setText('已完成操作'))
+    .setStateChanged(true)
+    .build();
 }
 
 function createDraft(e) {
