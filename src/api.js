@@ -123,9 +123,9 @@ function checkStatus(username, ip) {
 
     // account block and ipbe
     if (user.blockid) {
-      result.blocked = true;
-      result.blockBy = user.blockedby;
-      result.blockReason = user.blockreason;
+      result.accountBlocked = true;
+      result.accountBlockBy = user.blockedby;
+      result.accountBlockReason = user.blockreason;
     }
     if (user.groupmemberships) {
       for (var row of user.groupmemberships) {
