@@ -95,7 +95,7 @@ function createCard(e) {
 
   var archiveUrl = parseArchiveUrl(messages[0].getHeader('Archived-At'));
   if (!archiveUrl) {
-    archiveUrl = parseArchiveUrl(messages[0].getBody());
+    archiveUrl = parseArchiveUrl(messages[0].getPlainBody());
   }
 
   var allMailText = subject + '\n';
@@ -112,8 +112,10 @@ function createCard(e) {
       return;
     }
 
-    // console.log('getReplyTo: ' + message.getReplyTo());
-    var mailBody = message.getPlainBody();
+    var mailBody = message.getBody()
+      .replace(/<[^>]+>/g, '\n')
+      .replace(/\r\n/g, '\n')
+      .replace(/\n\n+/g, '\n');
     mailBody = stripMailQuote(mailBody);
 
     allMailText += mailBody + '\n';
@@ -126,6 +128,7 @@ function createCard(e) {
 
   // console.log('allMailText', allMailText);
 
+  console.log('parse: ' + allMailText);
   var parseResult = parseMailBody(allMailText);
   // text += 'parseResult: ' + JSON.stringify(parseResult) + '\n';
   console.log('parseResult: ' + JSON.stringify(parseResult));
