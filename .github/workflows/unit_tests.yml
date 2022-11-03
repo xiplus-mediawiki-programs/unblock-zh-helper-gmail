@@ -3,6 +3,7 @@ name: Unit tests
 on:
   push:
     paths:
+    - '.github/workflows/unit_tests.yml'
     - 'src/**'
     - 'tests/**'
     - 'package.json'
