@@ -50,11 +50,15 @@ describe('parseMailBody', async () => {
 	test('request acct', async () => {
 		expect(parseMailBody('账号创建申请').request.acc).toBeTruthy();
 		expect(parseMailBody('申请注册账户').request.acc).toBeTruthy();
+		expect(parseMailBody('想注册一个维基百科账号').request.acc).toBeTruthy();
+		expect(parseMailBody('还未注册账户').request.acc).toBeTruthy();
 	});
 
 	test('request ipbe', async () => {
 		expect(parseMailBody('申请IP封禁例外').request.ipbe).toBeTruthy();
 		expect(parseMailBody('IP封禁豁免申请').request.ipbe).toBeTruthy();
+		expect(parseMailBody('授予IP封禁豁免权').request.ipbe).toBeTruthy();
+		expect(parseMailBody('来自中国大陆').request.ipbe).toBeTruthy();
 	});
 
 	test('username', async () => {
@@ -64,12 +68,19 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('用户名：Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名是Example，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名是Example。').username).toStrictEqual(['Example']);
-		expect(parseMailBody('我的用户名是Example\n').username).toStrictEqual(['Example']);
+		expect(parseMailBody('我的用户名是Example\nXXX').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名是：Example。').username).toStrictEqual(['Example']);
+		expect(parseMailBody('我拟定的用户名:\nExample\n').username).toStrictEqual(['Example']);
+		expect(parseMailBody('用户名：Example\n').username).toStrictEqual(['Example']);
+		expect(parseMailBody('账号：Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名是[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册账户[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册帐户【Example】').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册账户[A] 申请注册账户[B]').username).toStrictEqual(['B', 'A']);
+
+		expect(parseMailBody('The user name I want to use is Example.').username).toStrictEqual(['Example']);
+
+		expect(parseMailBody('我的账号被封锁，').username).toStrictEqual([]);
 	});
 
 	test('ipv4', async () => {
@@ -83,6 +94,7 @@ describe('parseMailBody', async () => {
 
 	test('block id', async () => {
 		expect(parseMailBody('查封ID是#123456').iporid[0]).toBe('#123456');
+		expect(parseMailBody('查封ID是 #123456').iporid[0]).toBe('#123456');
 		expect(parseMailBody('blocked by ID#123456.').iporid[0]).toBe('#123456');
 	});
 });

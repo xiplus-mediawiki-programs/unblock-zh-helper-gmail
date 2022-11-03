@@ -42,19 +42,19 @@ function parseMailBody(text) {
     iporid: [],
   };
 
-  if (text.match(/账号创建申请|申请注册账户/)) {
+  if (text.match(/账号创建申请|申请注册|帮忙注册|想注册|还未注册/)) {
     result.request.acc = true;
   }
-  if (text.match(/申请IP封禁(豁免|例外)|IP封禁(豁免|例外)申请|blocked proxy|open (proxy|proxies)/)) {
+  if (text.match(/IP封禁(豁免|例外)|使用代理|来自中国大陆|blocked proxy|open (proxy|proxies)/)) {
     result.request.ipbe = true;
   }
 
   var matches = [
-    ...text.matchAll(/用户名：(.+?)\n/g),
-    ...text.matchAll(/(?:申请注册[账帐]户|用户名是)：?"(.+?)"/g),
-    ...text.matchAll(/(?:申请注册[账帐]户|用户名是)：?【(.+?)】/g),
-    ...text.matchAll(/(?:申请注册[账帐]户|用户名是)：?\[(.+?)\]/g),
-    ...text.matchAll(/用户名是：?([^\[\]【】"：，。\n]+)/g),
+    ...text.matchAll(/(?:[账帐][户号]|用户名)是?[：:]?"(.+?)"/g),
+    ...text.matchAll(/(?:[账帐][户号]|用户名)是?[：:]?【(.+?)】/g),
+    ...text.matchAll(/(?:[账帐][户号]|用户名)是?[：:]?\[(.+?)\]/g),
+    ...text.matchAll(/(?:[账帐][户号]|用户名)(?:[是：:]|是[：:])\n?([^\[\]【】"：:，。\n]+)[，。\n]/g),
+    ...text.matchAll(/user ?name.{0,20} is (.+?)\./g),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
     if (!result.username.includes(match[1])) {
@@ -65,8 +65,7 @@ function parseMailBody(text) {
   var matches = [
     ...text.matchAll(/((?:\d{1,3}\.){3}\d{1,3})/g),
     ...text.matchAll(/((?:[a-f0-9:]+:+)+[a-f0-9]+)/g),
-    ...text.matchAll(/查封ID是(#\d{6})/g),
-    ...text.matchAll(/ID(#\d{6})/g),
+    ...text.matchAll(/(#\d{6})/g),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
     // extra test for ipv6
