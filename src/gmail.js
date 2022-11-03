@@ -873,6 +873,7 @@ function runActions(e) {
           nttopic: '授予IP封鎖例外權通知',
           ntcontent: message,
           ntformat: 'wikitext',
+          token: tokens.csrftoken,
         });
         console.log('notice on wikitext: ' + JSON.stringify(res));
 
@@ -887,13 +888,13 @@ function runActions(e) {
         }
       } else {
         var res = apiRequest('POST', {
-          'action': 'edit',
-          'title': usertalk,
-          'section': 'new',
-          'sectiontitle': '',
-          'text': '{{subst:Ipexempt granted}}',
-          'summary': '授予IP封鎖例外權通知',
-          'token': tokens.csrftoken,
+          action: 'edit',
+          title: usertalk,
+          section: 'new',
+          sectiontitle: '',
+          text: '{{subst:Ipexempt granted}}',
+          summary: '授予IP封鎖例外權通知',
+          token: tokens.csrftoken,
         });
         console.log('notice on flow: ' + JSON.stringify(res));
 
@@ -912,11 +913,11 @@ function runActions(e) {
       var summary = '[[Special:UserRights/' + formData.normalizedUsername + '|授予' + formData.normalizedUsername + 'IP封禁例外權]]備案';
       var appendtext = '\n\n{{subst:rfp|1=' + formData.normalizedUsername + '|2=經由' + formData.summary + '的授權備案。|status=+}}';
       var res = apiRequest('POST', {
-        'action': 'edit',
-        'title': 'Wikipedia:權限申請/申請IP封禁例外權',
-        'summary': summary,
-        'appendtext': appendtext,
-        'token': tokens.csrftoken,
+        action: 'edit',
+        title: 'Wikipedia:權限申請/申請IP封禁例外權',
+        summary: summary,
+        appendtext: appendtext,
+        token: tokens.csrftoken,
       });
       console.log('rfipbe: ' + JSON.stringify(res));
       if (res.error) {
