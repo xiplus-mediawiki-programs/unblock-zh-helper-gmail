@@ -290,7 +290,8 @@ function createCard(e) {
         if (formData.usernameBannedDetail) {
           statusText += '：' + formData.usernameBannedDetail;
         }
-        statusText += '\n';
+        var caurl = 'https://zh.wikipedia.org/wiki/Special:CentralAuth?target=' + encodeURIComponent(formData.normalizedUsername);
+        statusText += '（<a href="' + caurl + '">全域帳號</a>）\n';
       }
     }
 
