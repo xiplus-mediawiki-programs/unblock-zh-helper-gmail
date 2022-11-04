@@ -64,7 +64,8 @@ function parseMailBody(text) {
     ...text.matchAll(/(?:[账帐][户号戶](?:名称)?|用[户戶]名|使用[者著]名稱)是?[：:]?[\[［](.+?)[\]］]/g),
     ...text.matchAll(/(?:[账帐][户号戶](?:名称)?|用[户戶]名|使用[者著]名稱)(?:[是：:]|是[：:])\n?([^\[\]［］【】"“”：:，。,.\n]+)[，。,.\n]/g),
     ...text.matchAll(/创建名为(.+?)的账户/g),
-    ...text.matchAll(/user ?(?:name|id).{0,20} is (.+?)[.,\n]/ig),
+    ...text.matchAll(/user ?(?:name|id).{0,20} is ([^\[\]]+?)[.,\n]/ig),
+    ...text.matchAll(/user ?(?:name|id).{0,20} is \[([^\[\]]+?)\]/ig),
     ...text.matchAll(/user ?(?:name|id).{0,20}[:：] ?([^,.\n]+?)[.,\n]/ig),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
@@ -80,7 +81,7 @@ function parseMailBody(text) {
   var matches = [
     ...text.matchAll(/((?:\d{1,3}\.){3}\d{1,3})/g),
     ...text.matchAll(/((?:[0-9A-Fa-f:]+:+)+(?:[0-9A-Fa-f]+)?)/ig),
-    ...text.matchAll(/(#\d{6})/g),
+    ...text.matchAll(/(#[1-4]\d{5})/g),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
     // extra test for ipv6

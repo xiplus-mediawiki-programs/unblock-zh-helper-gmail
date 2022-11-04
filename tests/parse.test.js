@@ -107,6 +107,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('username: Example,').username).toStrictEqual(['Example']);
 		expect(parseMailBody('username：Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('User ID is Example,').username).toStrictEqual(['Example']);
+		expect(parseMailBody('My username is [Example]\n').username).toStrictEqual(['Example']);
 		// false positive
 		expect(parseMailBody('我的账号被封锁，').username).toStrictEqual([]);
 		// blacklist
@@ -130,5 +131,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('查封ID是#123456').iporid[0]).toBe('#123456');
 		expect(parseMailBody('查封ID是 #123456').iporid[0]).toBe('#123456');
 		expect(parseMailBody('blocked by ID#123456.').iporid[0]).toBe('#123456');
+		// false positive
+		expect(parseMailBody('#000000').iporid).toStrictEqual([]);
 	});
 });
