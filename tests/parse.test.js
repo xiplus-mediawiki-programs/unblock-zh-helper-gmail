@@ -50,12 +50,14 @@ describe('getReplySubject', async () => {
 describe('parseMailBody', async () => {
 	test('request acct', async () => {
 		expect(parseMailBody('账号创建申请').request.acc).toBeTruthy();
+		expect(parseMailBody('账号申请').request.acc).toBeTruthy();
 		expect(parseMailBody('申请注册账户').request.acc).toBeTruthy();
 		expect(parseMailBody('想注册一个维基百科账号').request.acc).toBeTruthy();
 		expect(parseMailBody('还未注册账户').request.acc).toBeTruthy();
 		expect(parseMailBody('希望注册').request.acc).toBeTruthy();
 		expect(parseMailBody('进行注册').request.acc).toBeTruthy();
 		expect(parseMailBody('希望的用户名').request.acc).toBeTruthy();
+		expect(parseMailBody('希望使用的用户名').request.acc).toBeTruthy();
 		expect(parseMailBody('Account request').request.acc).toBeTruthy();
 	});
 
@@ -65,6 +67,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('IP封鎖例外權').request.ipbe).toBeTruthy();
 		expect(parseMailBody('授予IP封禁豁免权').request.ipbe).toBeTruthy();
 		expect(parseMailBody('来自中国大陆').request.ipbe).toBeTruthy();
+		expect(parseMailBody('由于中国大陆防火墙').request.ipbe).toBeTruthy();
 		expect(parseMailBody('当前的IP地址').request.ipbe).toBeTruthy();
 		expect(parseMailBody('IP blocking exceptions').request.ipbe).toBeTruthy();
 		expect(parseMailBody('IP ban exemption').request.ipbe).toBeTruthy();
@@ -90,6 +93,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('账号：Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的账号：Example.').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名是[Example]，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('用户名是"Example"，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册账户[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册帐户【Example】').username).toStrictEqual(['Example']);
 		expect(parseMailBody('创建名为Example的账户').username).toStrictEqual(['Example']);
