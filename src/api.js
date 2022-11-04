@@ -67,13 +67,15 @@ function checkStatus(username, ip) {
         } else if (cancreateerror.code === '_1') {
           result.usernameStatus = 'banned';
           result.usernameBannedDetail = cancreateerror.params[0]
-            .replace('<ul>', ' ')
             .replace(/<\/li><li>/g, '", "')
-            .replace(/<\/?li>/g, '"')
-            .replace('</ul>', '. ');
+            .replace('<ul><li>', ' "')
+            .replace(/<\/li><\/ul>/g, '". ');
         } else if (cancreateerror.code === '_1_2_3') {
           result.usernameStatus = 'banned';
-          result.usernameBannedDetail = cancreateerror.params[0] + cancreateerror.params[1] + cancreateerror.params[2];
+          result.usernameBannedDetail = cancreateerror.params[0] + cancreateerror.params[1]
+            .replace(/<\/li><li>/g, '", "')
+            .replace('<ul><li>', ' "')
+            .replace(/<\/li><\/ul>/g, '". ') + cancreateerror.params[2];
         } else {
           result.usernameStatus = 'banned';
         }
