@@ -480,7 +480,7 @@ function createCard(e) {
     .addItem('未給', 'nousername', formData.mailOptionsUsername === 'nousername')
     .addItem('已被占用', 'used', formData.mailOptionsUsername === 'used')
     .addItem('被系統禁止', 'banned', formData.mailOptionsUsername === 'banned')
-    .addItem('違反方針', 'illeagal', formData.mailOptionsUsername === 'illeagal')
+    .addItem('違反方針', 'illegal', formData.mailOptionsUsername === 'illegal')
     .addItem('已建立帳號', 'created', formData.mailOptionsUsername === 'created')
     .addItem('已強制建立本地帳號', 'local', formData.mailOptionsUsername === 'local')
     .addItem('申請IPBE所給帳號不存在', 'local', formData.mailOptionsUsername === 'not_exists')
