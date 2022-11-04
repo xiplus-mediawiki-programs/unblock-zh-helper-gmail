@@ -36,6 +36,7 @@ describe('stripEmail', async () => {
 		expect(stripEmail('alice@example.org')).toBe('alice@example.org');
 		expect(stripEmail('Alice <alice@example.org>')).toBe('alice@example.org');
 		expect(stripEmail('"Al ice" <alice@example.org>')).toBe('alice@example.org');
+		expect(stripEmail('<alice@example.org>')).toBe('alice@example.org');
 	});
 });
 
@@ -52,42 +53,62 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('申请注册账户').request.acc).toBeTruthy();
 		expect(parseMailBody('想注册一个维基百科账号').request.acc).toBeTruthy();
 		expect(parseMailBody('还未注册账户').request.acc).toBeTruthy();
+		expect(parseMailBody('希望注册').request.acc).toBeTruthy();
+		expect(parseMailBody('进行注册').request.acc).toBeTruthy();
+		expect(parseMailBody('希望的用户名').request.acc).toBeTruthy();
+		expect(parseMailBody('Account request').request.acc).toBeTruthy();
 	});
 
 	test('request ipbe', async () => {
 		expect(parseMailBody('申请IP封禁例外').request.ipbe).toBeTruthy();
 		expect(parseMailBody('IP封禁豁免申请').request.ipbe).toBeTruthy();
+		expect(parseMailBody('IP封鎖例外權').request.ipbe).toBeTruthy();
 		expect(parseMailBody('授予IP封禁豁免权').request.ipbe).toBeTruthy();
 		expect(parseMailBody('来自中国大陆').request.ipbe).toBeTruthy();
+		expect(parseMailBody('当前的IP地址').request.ipbe).toBeTruthy();
+		expect(parseMailBody('IP blocking exceptions').request.ipbe).toBeTruthy();
+		expect(parseMailBody('IP ban exemption').request.ipbe).toBeTruthy();
 	});
 
 	test('username', async () => {
 		expect(parseMailBody('我想注册的用户名是"Example"，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望使用的用户名是[Example]，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('希望使用的用戶名是［Example] 。').username).toStrictEqual(['Example']);
+		expect(parseMailBody('希望使用的使用者名稱是Example，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('使用的用户名是“Example”').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望使用的用户名是：【Example】').username).toStrictEqual(['Example']);
+		expect(parseMailBody('希望账号名称是：Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名：Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名是Example，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名是Example。').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名是Example\nXXX').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名是：Example。').username).toStrictEqual(['Example']);
+		expect(parseMailBody('我的用户名是Example,').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我拟定的用户名:\nExample\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名：Example\n').username).toStrictEqual(['Example']);
+		expect(parseMailBody('使用著名稱:Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('账号：Example\n').username).toStrictEqual(['Example']);
+		expect(parseMailBody('我的账号：Example.').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名是[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册账户[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册帐户【Example】').username).toStrictEqual(['Example']);
+		expect(parseMailBody('创建名为Example的账户').username).toStrictEqual(['Example']);
 		// two name
 		expect(parseMailBody('申请注册账户[A] 申请注册账户[B]').username).toStrictEqual(['B', 'A']);
 		// underline
 		expect(parseMailBody('我的用户名是Foo_Bar。').username).toStrictEqual(['Foo Bar']);
 		// english
 		expect(parseMailBody('The user name I want to use is Example.').username).toStrictEqual(['Example']);
+		expect(parseMailBody('username I want to apply for: Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('username: Example,').username).toStrictEqual(['Example']);
+		expect(parseMailBody('username：Example\n').username).toStrictEqual(['Example']);
+		expect(parseMailBody('User ID is Example,').username).toStrictEqual(['Example']);
 		// false positive
 		expect(parseMailBody('我的账号被封锁，').username).toStrictEqual([]);
 		// blacklist
 		expect(parseMailBody('申请注册账户[请求的账户名称]').username).toStrictEqual([]);
+		expect(parseMailBody('我的用戶名是[您的用戶名]').username).toStrictEqual([]);
+		expect(parseMailBody('我的用户名是[您的用户名]').username).toStrictEqual([]);
 	});
 
 	test('ipv4', async () => {
@@ -96,6 +117,8 @@ describe('parseMailBody', async () => {
 
 	test('ipv6', async () => {
 		expect(parseMailBody('IP 地址是2000:1234::a12b:12aa:fe34:9ab8，').iporid[0]).toBe('2000:1234::a12b:12aa:fe34:9ab8');
+		expect(parseMailBody('当前的IP地址是[2000:123::/32]，').iporid[0]).toBe('2000:123::');
+		// false positive
 		expect(parseMailBody('11:22').iporid).toStrictEqual([]);
 	});
 
