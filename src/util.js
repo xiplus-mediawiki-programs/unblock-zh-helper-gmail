@@ -15,6 +15,7 @@ function stripEmail(text) {
 
 function cleanHtml(text) {
   return text
+    .replace(/<br>/g, '\n')
     .replace(/<\/dd>/g, '\n')
     .replace(/<\/div>/g, '\n')
     .replace(/<[^>]+>/g, '')
@@ -61,7 +62,7 @@ function parseMailBody(text) {
   for (var match of matches) {
     var username = match[1].replace(/_/g, ' ');
     if (['请求的账户名称'].includes(username)) {
-     continue;
+      continue;
     }
     if (!result.username.includes(username)) {
       result.username.push(username);
