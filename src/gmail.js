@@ -588,6 +588,7 @@ function updateTextInput(e) {
   var formData = getFormData();
   var key = e.parameters.key;
   var newVal = e.formInput[key] || '';
+  newVal = newVal.trim();
   console.log('Update "' + key + '" from "' + formData[key] + '" to "' + newVal + '"');
 
   formData[key] = newVal;
