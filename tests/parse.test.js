@@ -52,12 +52,14 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('账号创建申请').request.acc).toBeTruthy();
 		expect(parseMailBody('账号申请').request.acc).toBeTruthy();
 		expect(parseMailBody('申请注册账户').request.acc).toBeTruthy();
+		expect(parseMailBody('申请注册维基百科账号').request.acc).toBeTruthy();
 		expect(parseMailBody('想注册一个维基百科账号').request.acc).toBeTruthy();
 		expect(parseMailBody('还未注册账户').request.acc).toBeTruthy();
 		expect(parseMailBody('希望注册').request.acc).toBeTruthy();
 		expect(parseMailBody('进行注册').request.acc).toBeTruthy();
 		expect(parseMailBody('希望的用户名').request.acc).toBeTruthy();
 		expect(parseMailBody('希望使用的用户名').request.acc).toBeTruthy();
+		expect(parseMailBody('需要的用户名').request.acc).toBeTruthy();
 		expect(parseMailBody('Account request').request.acc).toBeTruthy();
 	});
 
@@ -88,12 +90,13 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('我的用户名是：Example。').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名是Example,').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我拟定的用户名:\nExample\n').username).toStrictEqual(['Example']);
-		expect(parseMailBody('用户名：Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('使用著名稱:Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('账号：Example\n').username).toStrictEqual(['Example']);
+		expect(parseMailBody('账号名：Example，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的账号：Example.').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名是[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名是"Example"，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('用户名为：Example；').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册账户[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册帐户【Example】').username).toStrictEqual(['Example']);
 		expect(parseMailBody('创建名为Example的账户').username).toStrictEqual(['Example']);
