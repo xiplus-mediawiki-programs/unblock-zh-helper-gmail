@@ -310,6 +310,8 @@ function createCard(e) {
       statusText += '正規化為「' + formData.normalizedUsername + '」\n';
     }
 
+    var caurl = 'https://zh.wikipedia.org/wiki/Special:CentralAuth?target=' + encodeURIComponent(formData.normalizedUsername);
+
     if (formData.reqAccount) {
       if (formData.usernameStatus === 'not_exists') {
         var googleurl = 'https://www.google.com/search?q=' + encodeURIComponent(formData.normalizedUsername);
@@ -321,13 +323,12 @@ function createCard(e) {
         if (formData.usernameBannedDetail) {
           statusText += '：' + formData.usernameBannedDetail;
         }
-        var caurl = 'https://zh.wikipedia.org/wiki/Special:CentralAuth?target=' + encodeURIComponent(formData.normalizedUsername);
         statusText += '（<a href="' + caurl + '">全域帳號</a>）\n';
       }
     }
 
     if (!formData.reqAccount && (formData.usernameStatus === 'banned' || formData.usernameStatus === 'not_exists')) {
-      statusText += '❌ 帳號不存在\n';
+      statusText += '❌ 帳號不存在（<a href="' + caurl + '">全域帳號</a>）\n';
     }
 
     if (formData.usernameStatus === 'needs_local') {
@@ -336,7 +337,6 @@ function createCard(e) {
       } else {
         statusText += '✅';
       }
-      var caurl = 'https://zh.wikipedia.org/wiki/Special:CentralAuth?target=' + encodeURIComponent(formData.normalizedUsername);
       var createLocalUrl = 'https://zh.wikipedia.org/wiki/Special:BlankPage/unblock-zh-helper?'
         + 'inputCreateAccount=0'
         + '&username=' + encodeURIComponent(formData.normalizedUsername)
