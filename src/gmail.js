@@ -1,4 +1,6 @@
 var SERVICE_SCOPE_REQUESTS = 'basic highvolume editpage editprotected createeditmovepage createaccount createlocalaccount';
+var COLOR_ENABLED = '#039BE5';
+var COLOR_DISABLED = '#9E9E9E';
 
 var cache = CacheService.getUserCache();
 
@@ -18,7 +20,10 @@ function getFormData() {
   var formData = {
     firstLoad: true,
     needChecks: true,
-    requests: [],
+    reqAccount: false,
+    reqIpbe: false,
+    reqUnblock: false,
+    reqPassword: false,
     username: '',
     email: '',
     ip: '',
@@ -134,17 +139,17 @@ function createCard(e) {
   // fill missing formData
   if (formData.firstLoad) {
     if (parseResult.request.acc) {
-      formData.requests.push('CreateAccount');
+      formData.reqAccount = true;
     }
     if (parseResult.request.ipbe) {
-      formData.requests.push('GrantIpbe');
+      formData.reqIpbe = true;
     }
     if (parseResult.request.password) {
-      formData.requests.push('ResetPassword');
+      formData.reqPassword = true;
     }
     if (!parseResult.request.acc && !parseResult.request.ipbe && !parseResult.request.password) {
-      formData.requests.push('CreateAccount');
-      formData.requests.push('GrantIpbe');
+      formData.reqAccount = true;
+      formData.reqIpbe = true;
     }
   }
   if (!formData.username && parseResult.username.length > 0) {
@@ -189,19 +194,45 @@ function createCard(e) {
   var sectionInput = CardService.newCardSection()
     .setHeader('填寫申請人給予的資料');
 
-  var reqCheckboxes = CardService.newSelectionInput()
-    .setType(CardService.SelectionInputType.CHECK_BOX)
-    .setTitle('要求操作')
-    .setFieldName('requests')
-    .addItem('建立帳號', 'CreateAccount', formData.requests.includes('CreateAccount'))
-    .addItem('授予IP封鎖例外權', 'GrantIpbe', formData.requests.includes('GrantIpbe'))
-    .addItem('重設密碼', 'ResetPassword', formData.requests.includes('ResetPassword'))
-    .setOnChangeAction(CardService.newAction()
-      .setFunctionName('updateSelectionInput')
-      .setParameters({ key: 'requests' })
-      .setLoadIndicator(CardService.LoadIndicator.SPINNER)
-    );
-  sectionInput.addWidget(reqCheckboxes);
+  var reqButtonSet = CardService.newButtonSet();
+
+  reqButtonSet.addButton(CardService.newTextButton()
+    .setText('建立帳號')
+    .setOnClickAction(CardService.newAction()
+      .setFunctionName('updateRequest')
+      .setParameters({ key: 'reqAccount', value: (!formData.reqAccount).toString() })
+    )
+    .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
+    .setBackgroundColor(formData.reqAccount ? COLOR_ENABLED : COLOR_DISABLED));
+
+  reqButtonSet.addButton(CardService.newTextButton()
+    .setText('IPBE')
+    .setOnClickAction(CardService.newAction()
+      .setFunctionName('updateRequest')
+      .setParameters({ key: 'reqIpbe', value: (!formData.reqIpbe).toString() })
+    )
+    .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
+    .setBackgroundColor(formData.reqIpbe ? COLOR_ENABLED : COLOR_DISABLED));
+
+  reqButtonSet.addButton(CardService.newTextButton()
+    .setText('封鎖申訴')
+    .setOnClickAction(CardService.newAction()
+      .setFunctionName('updateRequest')
+      .setParameters({ key: 'reqUnblock', value: (!formData.reqUnblock).toString() })
+    )
+    .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
+    .setBackgroundColor(formData.reqUnblock ? COLOR_ENABLED : COLOR_DISABLED));
+
+  reqButtonSet.addButton(CardService.newTextButton()
+    .setText('重設密碼')
+    .setOnClickAction(CardService.newAction()
+      .setFunctionName('updateRequest')
+      .setParameters({ key: 'reqPassword', value: (!formData.reqPassword).toString() })
+    )
+    .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
+    .setBackgroundColor(formData.reqPassword ? COLOR_ENABLED : COLOR_DISABLED));
+
+  sectionInput.addWidget(reqButtonSet);
 
   var textInputUsername = CardService.newTextInput()
     .setFieldName('username')
@@ -279,7 +310,7 @@ function createCard(e) {
       statusText += '正規化為「' + formData.normalizedUsername + '」\n';
     }
 
-    if (formData.requests.includes('CreateAccount')) {
+    if (formData.reqAccount) {
       if (formData.usernameStatus === 'not_exists') {
         var googleurl = 'https://www.google.com/search?q=' + encodeURIComponent(formData.normalizedUsername);
         statusText += '✅ 帳號可以建立（<a href="' + googleurl + '">Google</a>）\n';
@@ -295,12 +326,12 @@ function createCard(e) {
       }
     }
 
-    if (!formData.requests.includes('CreateAccount') && (formData.usernameStatus === 'banned' || formData.usernameStatus === 'not_exists')) {
+    if (!formData.reqAccount && (formData.usernameStatus === 'banned' || formData.usernameStatus === 'not_exists')) {
       statusText += '❌ 帳號不存在\n';
     }
 
     if (formData.usernameStatus === 'needs_local') {
-      if (formData.requests.includes('CreateAccount')) {
+      if (formData.reqAccount) {
         statusText += '❌';
       } else {
         statusText += '✅';
@@ -316,7 +347,7 @@ function createCard(e) {
     }
 
     if (formData.usernameStatus === 'exists') {
-      if (formData.requests.includes('CreateAccount')) {
+      if (formData.reqAccount) {
         statusText += '❌';
       } else {
         statusText += '✅';
@@ -366,7 +397,7 @@ function createCard(e) {
 
   var anyAction = false;
 
-  if (formData.requests.includes('CreateAccount') && formData.usernameStatus === 'not_exists') {
+  if (formData.reqAccount && formData.usernameStatus === 'not_exists') {
     actionCheckboxes.addItem('建立帳號' + formData.statusCreateAcccount,
       'CreateAccount', formData.actionOptions.includes('CreateAccount'));
     anyAction = true;
@@ -570,6 +601,30 @@ function createCard(e) {
   return card.build();
 }
 
+function updateRequest(e) {
+  console.log(e.parameters);
+
+  var formData = getFormData();
+
+  var key = e.parameters.key;
+  var newVal = e.parameters.value === 'true';
+  console.log('Update "' + key + '" from "' + formData[key].toString() + '" to "' + newVal.toString() + '"');
+  formData[key] = newVal;
+  if (key === 'reqUnblock' && newVal) {
+    formData.reqAccount = false;
+    formData.reqIpbe = false;
+  }
+
+  putFormData(formData);
+
+  autoActionOptions();
+  autoMailOptions();
+
+  var navigation = CardService.newNavigation().updateCard(createCard(e));
+  var actionResponse = CardService.newActionResponseBuilder().setNavigation(navigation).setStateChanged(true);
+  return actionResponse.build();
+}
+
 function updateInputValue(e) {
   console.log(e.parameters);
 
@@ -619,10 +674,7 @@ function updateSelectionInput(e) {
   formData[e.parameters.key] = newVal;
   putFormData(formData);
 
-  if (e.parameters.key === 'requests') {
-    autoActionOptions();
-    autoMailOptions();
-  } else if (e.parameters.key === 'actionOptions') {
+  if (e.parameters.key === 'actionOptions') {
     autoMailOptions();
   }
 
@@ -638,7 +690,7 @@ function autoActionOptions() {
   console.log('autoActionOptions', JSON.stringify(formData));
 
   var userToBeCreated = false;
-  if (formData.requests.includes('CreateAccount')) {
+  if (formData.reqAccount) {
     if (formData.normalizedUsername) {
       if (formData.usernameStatus == 'not_exists') {
         formData.actionOptions.push('CreateAccount');
@@ -654,8 +706,8 @@ function autoActionOptions() {
     }
   }
   if (
-    formData.requests.includes('GrantIpbe') &&
-    ((!formData.requests.includes('CreateAccount') &&
+    formData.reqIpbe &&
+    ((!formData.reqAccount &&
       (formData.usernameStatus === 'exists' || formData.usernameStatus == 'needs_local')) ||
       userToBeCreated) &&
     formData.ip &&
@@ -670,9 +722,9 @@ function autoActionOptions() {
       formData.actionOptions.push('GrantIpbe');
     }
   }
-  if (formData.requests.includes('ResetPassword')) {
+  if (formData.reqPassword) {
     if (formData.username) {
-      if (!formData.requests.includes('CreateAccount') && formData.usernameStatus == 'needs_local') {
+      if (!formData.reqAccount && formData.usernameStatus == 'needs_local') {
         formData.actionOptions.push('CreateLocal');
       }
       formData.actionOptions.push('ResetPasswordUser');
@@ -695,7 +747,7 @@ function autoMailOptions() {
     formData.mailOptionsUsername = 'created';
   } else if (formData.actionOptions.includes('CreateLocal')) {
     formData.mailOptionsUsername = 'local';
-  } else if (formData.requests.includes('CreateAccount')) {
+  } else if (formData.reqAccount) {
     if (formData.normalizedUsername) {
       if (formData.usernameStatus == 'exists' || formData.usernameStatus == 'needs_local') {
         formData.mailOptionsUsername = 'used';
@@ -705,7 +757,7 @@ function autoMailOptions() {
     } else {
       formData.mailOptionsUsername = 'nousername';
     }
-  } else if (formData.requests.includes('GrantIpbe')) {
+  } else if (formData.reqIpbe) {
     if (!formData.normalizedUsername) {
       formData.mailOptionsUsername = 'nousername';
     } else if (formData.usernameStatus == 'banned' || formData.usernameStatus == 'not_exists') {
@@ -726,7 +778,7 @@ function autoMailOptions() {
   if (formData.actionOptions.includes('GrantIpbe')) {
     formData.mailOptionsIpbe = 'granted';
   } else {
-    if (formData.requests.includes('GrantIpbe')) {
+    if (formData.reqIpbe) {
       if (formData.ip) {
         if (!formData.blocked) {
           formData.mailOptionsIpbe = 'not_blocked';

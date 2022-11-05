@@ -201,16 +201,16 @@ function generateMailContent(formData) {
   if (formData.mailOptionsUsername === 'nousername') {
     if (formData.mailOptionsOther.includes('proxy')) {
       // pass for proxy
-    } else if (formData.requests.includes('CreateAccount')) {
+    } else if (formData.reqAccount) {
       pleaseProvide.push(mt('mail-wanted-username') + useUsernameChecker);
-    } else if (formData.requests.includes('GrantIpbe')) {
+    } else if (formData.reqIpbe) {
       pleaseProvide.push(
         mt('mail-your-username', ['[LINK:https://zh.wikipedia.org/wiki/Special:Preferences]'])
       );
-      if (formData.requests.includes('GrantIpbe')) {
+      if (formData.reqIpbe) {
         pleaseProvideAppend = mt('mail-no-account-give-username') + useUsernameChecker;
       }
-    } else if (formData.requests.includes('ResetPassword')) {
+    } else if (formData.reqPassword) {
       pleaseProvide.push(mt('mail-your-username-help-reset'));
     }
   } else if (formData.mailOptionsUsername === 'used') {
@@ -264,7 +264,7 @@ function generateMailContent(formData) {
   // Password
   if (formData.mailOptionsOther.includes('resetpwd')) {
     mainText.push(mt('mail-password-reset'));
-    if (formData.requests.includes('GrantIpbe') && formData.mailOptionsIpbe === '') {
+    if (formData.reqIpbe && formData.mailOptionsIpbe === '') {
       mainText.push(mt('mail-make-sure-login'));
     }
   }
