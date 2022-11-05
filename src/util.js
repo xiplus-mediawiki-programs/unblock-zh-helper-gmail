@@ -16,17 +16,19 @@ function stripEmail(text) {
 function cleanHtml(text) {
   return text
     .replace(/<blockquote .+$/s, '')
-    .replace(/<br( |>)/g, '\n')
+    .replace(/(<br[ >])/g, '\n$1')
     .replace(/<br\/>/g, '\n')
     .replace(/<\/dd>/g, '\n')
-    .replace(/<dd( |>)/g, '\n')
+    .replace(/(<dd[ >])/g, '\n$1')
+    .replace(/<\/li>/g, '\n')
     .replace(/<\/div>/g, '\n')
-    .replace(/<div( |>)/g, '\n')
+    .replace(/(<div[ >])/g, '\n$1')
     .replace(/<\/?p>/g, '\n')
-    .replace(/<p( |>)/g, '\n')
+    .replace(/(<p[ >])/g, '\n$1')
     .replace(/<[^>]+>/g, '')
     .replace(/\r\n/g, '\n')
     .replace(/\n\n+/g, '\n')
+    .replace(/\u00A0/g, ' ') // non-breaking space
     .replace(/&#xff1a;/g, '：')
     .replace(/&quot;/g, '"');
 }
@@ -51,7 +53,7 @@ function parseMailBody(text) {
     iporid: [],
   };
 
-  if (text.match(/账号.{0,10}申请|申请注册|帮忙注册|想注册|还未注册|希望注册|进行注册|(希望|需要).{0,10}用[户戶]名|Account request/)) {
+  if (text.match(/账号.{0,10}(申请|注册)|(申请|帮忙|想|还未|希望)注册|进行注册|(希望|需要).{0,10}用[户戶]名|创建.{0,10}账号|Account request/)) {
     result.request.acc = true;
   }
   if (text.match(/IP封[禁鎖](豁免|例外)|使用代理|中国大陆|当前的IP地址|blocked proxy|open (proxy|proxies)|(ban|block(ing)?) (exception|exemption)/)) {
