@@ -59,6 +59,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('进行注册').request.acc).toBeTruthy();
 		expect(parseMailBody('希望的用户名').request.acc).toBeTruthy();
 		expect(parseMailBody('希望使用的用户名').request.acc).toBeTruthy();
+		expect(parseMailBody('希望使用的用戶名').request.acc).toBeTruthy();
 		expect(parseMailBody('需要的用户名').request.acc).toBeTruthy();
 		expect(parseMailBody('Account request').request.acc).toBeTruthy();
 	});

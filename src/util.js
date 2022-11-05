@@ -51,7 +51,7 @@ function parseMailBody(text) {
     iporid: [],
   };
 
-  if (text.match(/账号.{0,10}申请|申请注册|帮忙注册|想注册|还未注册|希望注册|进行注册|(希望|需要).{0,10}用户名|Account request/)) {
+  if (text.match(/账号.{0,10}申请|申请注册|帮忙注册|想注册|还未注册|希望注册|进行注册|(希望|需要).{0,10}用[户戶]名|Account request/)) {
     result.request.acc = true;
   }
   if (text.match(/IP封[禁鎖](豁免|例外)|使用代理|中国大陆|当前的IP地址|blocked proxy|open (proxy|proxies)|(ban|block(ing)?) (exception|exemption)/)) {
