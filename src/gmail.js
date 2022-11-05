@@ -306,7 +306,13 @@ function createCard(e) {
         statusText += '✅';
       }
       var caurl = 'https://zh.wikipedia.org/wiki/Special:CentralAuth?target=' + encodeURIComponent(formData.normalizedUsername);
-      statusText += ' 需要強制建立本地帳號（<a href="' + caurl + '">全域帳號</a>）\n';
+      var createLocalUrl = 'https://zh.wikipedia.org/wiki/Special:BlankPage/unblock-zh-helper?'
+        + 'inputCreateAccount=0'
+        + '&username=' + encodeURIComponent(formData.normalizedUsername)
+        + '&ip=' + encodeURIComponent(formData.ip)
+        + '&archiveId=' + encodeURIComponent(archiveUrl)
+        + '&autoCheckInput=1';
+      statusText += ' 需要強制建立本地帳號（<a href="' + caurl + '">全域帳號</a>、<a href="' + createLocalUrl + '">使用舊版工具</a>）\n';
     }
 
     if (formData.usernameStatus === 'exists') {
@@ -816,6 +822,7 @@ function runActions(e) {
     }
   }
 
+  /* Not supported: https://phabricator.wikimedia.org/T322468
   if (formData.actionOptions.includes('CreateLocal') && formData.normalizedUsername) {
     var res = apiRequest('POST', {
       action: 'createlocalaccount',
@@ -835,6 +842,7 @@ function runActions(e) {
       formData.statusCreateLocal = ' ✅';
     }
   }
+  */
 
   if (formData.actionOptions.includes('GrantIpbe') && formData.normalizedUsername) {
     var res = apiRequest('POST', {
