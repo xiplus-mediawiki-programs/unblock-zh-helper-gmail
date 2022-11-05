@@ -353,8 +353,8 @@ function createCard(e) {
         statusText += '✅';
       }
       var caurl = 'https://zh.wikipedia.org/wiki/Special:CentralAuth?target=' + encodeURIComponent(formData.normalizedUsername);
-      var rightlog = 'https://zh.wikipedia.org/wiki/Special:Log/rights?page=' + encodeURIComponent('User:' + formData.normalizedUsername);
-      statusText += ' 帳號已被註冊（<a href="' + caurl + '">全域帳號</a>、<a href="' + rightlog + '">權限日誌</a>）\n';
+      var rightlog = 'https://zh.wikipedia.org/wiki/Special:Log?page=' + encodeURIComponent('User:' + formData.normalizedUsername);
+      statusText += ' 帳號已被註冊（<a href="' + caurl + '">全域帳號</a>、<a href="' + rightlog + '">日誌</a>）\n';
     }
 
     if (formData.accountBlocked) {
