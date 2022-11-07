@@ -30,6 +30,8 @@ function cleanHtml(text) {
     .replace(/\n\n+/g, '\n')
     .replace(/\u00A0/g, ' ') // non-breaking space
     .replace(/&#xff1a;/g, '：')
+    .replace(/&gt;/g, '>')
+    .replace(/&lt;/g, '<')
     .replace(/&nbsp;/g, ' ')
     .replace(/&quot;/g, '"');
 }
