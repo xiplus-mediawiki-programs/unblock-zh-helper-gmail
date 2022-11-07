@@ -42,5 +42,9 @@
         }
       ]
     }
-  }
+  },
+  "urlFetchWhitelist": [
+    "https://zh.wikipedia.org/",
+    "https://login.wikimedia.org/"
+  ]
 }
