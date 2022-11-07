@@ -30,6 +30,7 @@ function cleanHtml(text) {
     .replace(/\n\n+/g, '\n')
     .replace(/\u00A0/g, ' ') // non-breaking space
     .replace(/&#xff1a;/g, '：')
+    .replace(/&nbsp;/g, ' ')
     .replace(/&quot;/g, '"');
 }
 
@@ -72,8 +73,8 @@ function parseMailBody(text) {
     ...text.matchAll(/user ?(?:name|id).{0,20}[:：] ?([^,.\n]+?)[.,\n]/ig),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
-    var username = match[1].replace(/_/g, ' ');
-    if (['请求的账户名称', '您的用戶名', '您的用户名'].includes(username)) {
+    var username = match[1].replace(/_/g, ' ').trim();
+    if (['', '请求的账户名称', '您的用戶名', '您的用户名'].includes(username)) {
       continue;
     }
     if (!result.username.includes(username)) {
