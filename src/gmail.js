@@ -520,7 +520,7 @@ function createCard(e) {
     .addItem('違反方針', 'illegal', formData.mailOptionsUsername === 'illegal')
     .addItem('已建立帳號', 'created', formData.mailOptionsUsername === 'created')
     .addItem('已強制建立本地帳號', 'local', formData.mailOptionsUsername === 'local')
-    .addItem('申請IPBE所給帳號不存在', 'local', formData.mailOptionsUsername === 'not_exists')
+    .addItem('申請IPBE所給帳號不存在', 'not_exists', formData.mailOptionsUsername === 'not_exists')
     .addItem('無', '', formData.mailOptionsUsername === '')
     .setOnChangeAction(CardService.newAction()
       .setFunctionName('updateTextInput')
