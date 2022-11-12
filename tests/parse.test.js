@@ -109,6 +109,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('我的用户名是Foo_Bar。').username).toStrictEqual(['Foo Bar']);
 		// english
 		expect(parseMailBody('The user name I want to use is Example.').username).toStrictEqual(['Example']);
+		expect(parseMailBody('The user name is "Example" and the IP address is “12.').username).toStrictEqual(['Example']);
 		expect(parseMailBody('username I want to apply for: Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('username: Example,').username).toStrictEqual(['Example']);
 		expect(parseMailBody('username：Example\n').username).toStrictEqual(['Example']);
