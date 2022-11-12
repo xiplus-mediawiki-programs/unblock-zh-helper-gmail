@@ -610,7 +610,7 @@ function updateRequest(e) {
   var newVal = e.parameters.value === 'true';
   console.log('Update "' + key + '" from "' + formData[key].toString() + '" to "' + newVal.toString() + '"');
   formData[key] = newVal;
-  if (key === 'reqUnblock' && newVal) {
+  if (['reqUnblock', 'reqPassword'].includes(key) && newVal) {
     formData.reqAccount = false;
     formData.reqIpbe = false;
   }
