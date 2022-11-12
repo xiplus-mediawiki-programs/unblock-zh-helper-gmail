@@ -4,7 +4,7 @@ on:
   push:
     paths:
     - '.github/workflows/unit_tests.yml'
-    - 'src/**'
+    - 'src/util.js'
     - 'tests/**'
     - 'package.json'
     - 'package-lock.json'
