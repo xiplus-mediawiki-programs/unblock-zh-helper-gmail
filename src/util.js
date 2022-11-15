@@ -41,6 +41,7 @@ function stripMailQuote(text) {
   text = text.replace(/\r/g, '\n');
   text = text.replace(/(\n>.*)*\n*$/, '');
   text = text.replace(/^(.*?)________________________________*(.*)$/s, '$1');
+  text = text.replace(/^(.*?)---*\s*原始邮件(.*)$/s, '$1');
   return text;
 }
 
@@ -56,7 +57,7 @@ function parseMailBody(text) {
     iporid: [],
   };
 
-  if (text.match(/账号.{0,10}(申请|注册)|(申请|帮忙|想|还未|希望)注册|进行注册|(希望|需要).{0,10}用[户戶]名|创建.{0,10}账号|Account request/)) {
+  if (text.match(/账号.{0,10}(申请|注册)|(申请|帮忙|想|[還还]未|希望)[註注][冊册]|进行注册|(希望|需要|申请).{0,10}用[户戶]名|创建.{0,10}账号|Account request/)) {
     result.request.acc = true;
   }
   if (text.match(/IP封[禁鎖](豁免|例外)|使用代理|中国大陆|当前的IP地址|blocked proxy|open (proxy|proxies)|(ban|block(ing)?) (exception|exemption)/)) {
@@ -64,20 +65,20 @@ function parseMailBody(text) {
   }
 
   var matches = [
-    ...text.matchAll(/(?:[账帐][户号戶](?:名|名称)?|用[户戶]名|使用[者著]名稱)是?[：:]?"(.+?)"/g),
-    ...text.matchAll(/(?:[账帐][户号戶](?:名|名称)?|用[户戶]名|使用[者著]名稱)是?[：:]?“(.+?)”/g),
-    ...text.matchAll(/(?:[账帐][户号戶](?:名|名称)?|用[户戶]名|使用[者著]名稱)是?[：:]?【(.+?)】/g),
-    ...text.matchAll(/(?:[账帐][户号戶](?:名|名称)?|用[户戶]名|使用[者著]名稱)是?[：:]?[\[［](.+?)[\]］]/g),
-    ...text.matchAll(/(?:[账帐][户号戶](?:名|名称)?|用[户戶]名|使用[者著]名稱)(?:[是为：:]|[是为][：:])\n?([^\[\]［］【】"“”：:，。；,.\n]+)[，。；,.\n]/g),
+    ...text.matchAll(/(?:[账帐][户号戶](?:名|名称)?|用[户戶]名|使用[者著]名稱)是?[：:]?"(?:User:)?(.+?)"/g),
+    ...text.matchAll(/(?:[账帐][户号戶](?:名|名称)?|用[户戶]名|使用[者著]名稱)是?[：:]?“(?:User:)?(.+?)”/g),
+    ...text.matchAll(/(?:[账帐][户号戶](?:名|名称)?|用[户戶]名|使用[者著]名稱)是?[：:]?【(?:User:)?(.+?)】/g),
+    ...text.matchAll(/(?:[账帐][户号戶](?:名|名称)?|用[户戶]名|使用[者著]名稱)是?[：:]?\s*[\[［]\s*(?:User:)?(.+?)\s*[\]］]/g),
+    ...text.matchAll(/(?:[账帐][户号戶](?:名|名称)?|用[户戶]名|使用[者著]名稱)(?:[是为：:]|[是为][：:])\n?(?:User:)?([^\[\]［］【】"“”：:，。；,.\n]+)[，。；,.\n]/g),
     ...text.matchAll(/创建名为(.+?)的账户/g),
-    ...text.matchAll(/user ?(?:name|id).{0,20} is ([^\[\]"]+?)[.,\n]/ig),
-    ...text.matchAll(/user ?(?:name|id).{0,20} is \[([^\[\]]+?)\]/ig),
-    ...text.matchAll(/user ?(?:name|id).{0,20} is "([^\[\]"]+?)"/ig),
-    ...text.matchAll(/user ?(?:name|id).{0,20}[:：] ?([^,.\n]+?)[.,\n]/ig),
+    ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20} is ([^\[\]"]+?)[.,\n]/ig),
+    ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20} is \[([^\[\]]+?)\]/ig),
+    ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20} is "([^\[\]"]+?)"/ig),
+    ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20}[:：] ?([^,.，。；\n]+?)[.,，。；\n]/ig),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
     var username = match[1].replace(/_/g, ' ').trim();
-    if (['', '请求的账户名称', '您的用戶名', '您的用户名'].includes(username)) {
+    if (['', '请求的账户名称', '您的用戶名', '您的用户名', '还未注册'].includes(username)) {
       continue;
     }
     if (!result.username.includes(username)) {

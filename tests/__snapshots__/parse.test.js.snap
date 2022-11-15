@@ -11,3 +11,13 @@ exports[`stripMailQuote > type 2 1`] = `
 "Test
 "
 `;
+
+exports[`stripMailQuote > type 3 1`] = `
+"Test
+"
+`;
+
+exports[`stripMailQuote > type 4 1`] = `
+"Test
+"
+`;

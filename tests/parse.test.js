@@ -29,6 +29,18 @@ On Sun, Oct 9, 2022 at 10:22 AM User <user@example.org> wrote:
 ________________________________
 发件人`)).toMatchSnapshot();
 	});
+
+	test('type 3', async () => {
+		expect(stripMailQuote(`Test
+------------------ 原始邮件 ------------------
+发件人:`)).toMatchSnapshot();
+	});
+
+	test('type 4', async () => {
+		expect(stripMailQuote(`Test
+---原始邮件---
+发件人`)).toMatchSnapshot();
+	});
 });
 
 describe('stripEmail', async () => {
@@ -63,6 +75,8 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('需要的用户名').request.acc).toBeTruthy();
 		expect(parseMailBody('创建维基账号').request.acc).toBeTruthy();
 		expect(parseMailBody('账号注册').request.acc).toBeTruthy();
+		expect(parseMailBody('申请的用户名').request.acc).toBeTruthy();
+		expect(parseMailBody('還未註冊帳戶').request.acc).toBeTruthy();
 		expect(parseMailBody('Account request').request.acc).toBeTruthy();
 	});
 
@@ -81,6 +95,8 @@ describe('parseMailBody', async () => {
 	test('username', async () => {
 		expect(parseMailBody('我想注册的用户名是"Example"，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望使用的用户名是[Example]，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('希望使用的用户名是[\n Example  ]，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('希望使用的用户名是 [ Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望使用的用戶名是［Example] 。').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望使用的使用者名稱是Example，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('使用的用户名是“Example”').username).toStrictEqual(['Example']);
@@ -100,6 +116,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('用户名是[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名是"Example"，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名为：Example；').username).toStrictEqual(['Example']);
+		expect(parseMailBody('我的用户名为User:Example，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册账户[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册帐户【Example】').username).toStrictEqual(['Example']);
 		expect(parseMailBody('创建名为Example的账户').username).toStrictEqual(['Example']);
@@ -115,12 +132,15 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('username：Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('User ID is Example,').username).toStrictEqual(['Example']);
 		expect(parseMailBody('My username is [Example]\n').username).toStrictEqual(['Example']);
+		expect(parseMailBody('new account:Example\n').username).toStrictEqual(['Example']);
+		expect(parseMailBody('account ？ID：ExampleExample；Code：XXXXXXXXXXXX\n').username).toStrictEqual(['ExampleExample']);
 		// false positive
 		expect(parseMailBody('我的账号被封锁，').username).toStrictEqual([]);
 		// blacklist
 		expect(parseMailBody('申请注册账户[请求的账户名称]').username).toStrictEqual([]);
 		expect(parseMailBody('我的用戶名是[您的用戶名]').username).toStrictEqual([]);
 		expect(parseMailBody('我的用户名是[您的用户名]').username).toStrictEqual([]);
+		expect(parseMailBody('我的用户名是[还未注册]').username).toStrictEqual([]);
 	});
 
 	test('ipv4', async () => {
