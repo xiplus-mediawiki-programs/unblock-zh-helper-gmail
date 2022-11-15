@@ -1,3 +1,4 @@
+var SUMMARY_SUFFIX = ' #UZHG v1.1-alpha';
 var SERVICE_SCOPE_REQUESTS = 'basic highvolume editpage editprotected createeditmovepage createaccount createlocalaccount';
 var COLOR_ENABLED = '#039BE5';
 var COLOR_DISABLED = '#9E9E9E';
@@ -859,7 +860,7 @@ function runActions(e) {
       email: formData.email,
       // realname: '',
       mailpassword: '1',
-      reason: formData.summary,
+      reason: formData.summary + SUMMARY_SUFFIX,
       createreturnurl: 'https://zh.wikipedia.org',
       createtoken: tokens.createaccounttoken,
     })
@@ -879,7 +880,7 @@ function runActions(e) {
     var res = apiRequest('POST', {
       action: 'createlocalaccount',
       username: formData.normalizedUsername,
-      reason: formData.summary,
+      reason: formData.summary + SUMMARY_SUFFIX,
       token: tokens.csrftoken,
     })
     console.log('createlocalaccount: ' + JSON.stringify(res));
@@ -902,7 +903,7 @@ function runActions(e) {
       user: formData.normalizedUsername,
       add: 'ipblock-exempt',
       expiry: 'infinite',
-      reason: '+IP封鎖例外，' + formData.summary,
+      reason: '+IP封鎖例外，' + formData.summary + SUMMARY_SUFFIX,
       token: tokens.userrightstoken,
     });
     console.log('userrights: ' + JSON.stringify(res));
@@ -958,7 +959,7 @@ function runActions(e) {
           section: 'new',
           sectiontitle: '',
           text: '{{subst:Ipexempt granted}}',
-          summary: '授予IP封鎖例外權通知',
+          summary: '授予IP封鎖例外權通知' + SUMMARY_SUFFIX,
           token: tokens.csrftoken,
         });
         console.log('notice on flow: ' + JSON.stringify(res));
@@ -980,7 +981,7 @@ function runActions(e) {
       var res = apiRequest('POST', {
         action: 'edit',
         title: 'Wikipedia:權限申請/申請IP封禁例外權',
-        summary: summary,
+        summary: summary + SUMMARY_SUFFIX,
         appendtext: appendtext,
         token: tokens.csrftoken,
       });
