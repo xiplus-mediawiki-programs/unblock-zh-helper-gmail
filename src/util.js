@@ -211,7 +211,7 @@ function generateMailContent(formData) {
       // pass for proxy
     } else if (formData.reqAccount) {
       pleaseProvide.push(mt('mail-wanted-username') + useUsernameChecker);
-    } else if (formData.reqIpbe) {
+    } else if (formData.reqIpbe || formData.reqUnblock) {
       pleaseProvide.push(
         mt('mail-your-username', ['[LINK:https://zh.wikipedia.org/wiki/Special:Preferences]'])
       );
