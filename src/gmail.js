@@ -50,6 +50,19 @@ function putFormData(formData) {
   cache.put('formData', JSON.stringify(formData));
 }
 
+function getCorrectSender(message) {
+  var sender = stripEmail(message.getFrom());
+  if (sender === WIKI_SENDER_MAIL) {
+    console.log('sender is wiki, use reply-to (' + message.getReplyTo() + ') instead');
+    return stripEmail(message.getReplyTo());
+  }
+  if (sender === UNBLOCK_ZH_MAIL) {
+    console.log('sender is unblock-zh, use cc (' + message.getCc() + ') instead');
+    return stripEmail(message.getCc());
+  }
+  return sender;
+}
+
 function createCard(e) {
   var messageId = e.gmail.messageId;
   var threadId = e.gmail.threadId;
@@ -92,10 +105,7 @@ function createCard(e) {
 
   // Parse mails
   var messages = thread.getMessages();
-  var requester = stripEmail(messages[0].getFrom());
-  if (requester === UNBLOCK_ZH_MAIL) {
-    requester = stripEmail(messages[0].getCc());
-  }
+  var requester = getCorrectSender(messages[0]);
   var subject = thread.getFirstMessageSubject();
   var lastSubject = messages[messages.length - 1].getSubject();
 
@@ -109,10 +119,7 @@ function createCard(e) {
 
   // text += 'messages:\n';
   messages.forEach((message, idx) => {
-    var mailFrom = stripEmail(message.getFrom());
-    if (mailFrom === UNBLOCK_ZH_MAIL) {
-      mailFrom = stripEmail(message.getCc());
-    }
+    var mailFrom = getCorrectSender(message);
 
     if (mailFrom != requester) {
       return;
