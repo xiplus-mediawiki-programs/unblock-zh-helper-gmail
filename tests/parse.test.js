@@ -49,6 +49,7 @@ describe('stripEmail', async () => {
 		expect(stripEmail('Alice <alice@example.org>')).toBe('alice@example.org');
 		expect(stripEmail('"Al ice" <alice@example.org>')).toBe('alice@example.org');
 		expect(stripEmail('<alice@example.org>')).toBe('alice@example.org');
+		expect(stripEmail('a <alice@example.org>, b <bob@example.org>')).toBe('alice@example.org');
 	});
 });
 
@@ -99,6 +100,8 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('希望使用的用户名是 [ Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望使用的用戶名是［Example] 。').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望使用的使用者名稱是Example，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('希望创建的用户名為:Example，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('希望创建的用户名為:Example、').username).toStrictEqual(['Example']);
 		expect(parseMailBody('使用的用户名是“Example”').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望使用的用户名是：【Example】').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望账号名称是：Example\n').username).toStrictEqual(['Example']);
@@ -120,6 +123,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('申请注册账户[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册帐户【Example】').username).toStrictEqual(['Example']);
 		expect(parseMailBody('创建名为Example的账户').username).toStrictEqual(['Example']);
+		expect(parseMailBody('来自维基百科用户“Example”的电子邮件').username).toStrictEqual(['Example']);
 		// two name
 		expect(parseMailBody('申请注册账户[A] 申请注册账户[B]').username).toStrictEqual(['B', 'A']);
 		// underline
