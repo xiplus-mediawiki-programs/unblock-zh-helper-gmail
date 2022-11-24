@@ -33,8 +33,6 @@ function getFormData() {
     statusCreateAcccount: '',
     statusCreateLocal: '',
     statusGrantIpbe: '',
-    statusResetPasswordUsername: '',
-    statusResetPasswordEmail: '',
     mailOptionsUsername: '',
     mailOptionsIpbe: '',
     mailOptionsOther: [],
@@ -390,6 +388,17 @@ function createCard(e) {
     statusText += '❌ 使用者已擁有IPBE\n';
   }
 
+  if (formData.reqPassword) {
+    var resetPasswordUrl = 'https://zh.wikipedia.org/wiki/Special:BlankPage/unblock-zh-helper?'
+      + 'inputCreateAccount=0'
+      + '&inputGrantIpbe=0'
+      + '&inputResetPassword=1'
+      + '&username=' + encodeURIComponent(formData.normalizedUsername)
+      + '&email=' + encodeURIComponent(formData.email)
+      + '&autoCheckInput=1';
+    statusText += '<a href="' + resetPasswordUrl + '">使用舊版工具重設密碼</a>\n';
+  }
+
   var statusTextParagraph = CardService.newTextParagraph().setText(statusText);
   sectionInfo.addWidget(statusTextParagraph);
 
@@ -420,18 +429,6 @@ function createCard(e) {
   if (formData.normalizedUsername) {
     actionCheckboxes.addItem('授予IPBE、通知、備案' + formData.statusGrantIpbe,
       'GrantIpbe', formData.actionOptions.includes('GrantIpbe'));
-    anyAction = true;
-  }
-
-  if (formData.normalizedUsername) {
-    actionCheckboxes.addItem('重設「' + formData.normalizedUsername + '」密碼' + formData.statusResetPasswordUsername,
-      'ResetPasswordUsername', formData.actionOptions.includes('ResetPasswordUsername'));
-    anyAction = true;
-  }
-
-  if (formData.email) {
-    actionCheckboxes.addItem('重設「' + formData.email + '」密碼' + formData.statusResetPasswordEmail,
-      'ResetPasswordEmail', formData.actionOptions.includes('ResetPasswordEmail'));
     anyAction = true;
   }
 
@@ -735,9 +732,6 @@ function autoActionOptions() {
       if (!formData.reqAccount && formData.usernameStatus == 'needs_local') {
         formData.actionOptions.push('CreateLocal');
       }
-      formData.actionOptions.push('ResetPasswordUser');
-    } else if (formData.email) {
-      formData.actionOptions.push('ResetPasswordEmail');
     }
   }
 
@@ -801,8 +795,7 @@ function autoMailOptions() {
 
   // reset password
   formData.mailOptionsOther = formData.mailOptionsOther.filter((key) => key !== 'resetpwd');
-  if (formData.actionOptions.includes('ResetPasswordUsername')
-    || formData.actionOptions.includes('ResetPasswordEmail')) {
+  if (formData.reqPassword) {
     formData.mailOptionsOther.push('resetpwd');
   }
 
@@ -822,21 +815,7 @@ function runActions(e) {
     return actionResponse;
   }
 
-  if (formData.actionOptions.includes('ResetPasswordUsername') && formData.actionOptions.includes('ResetPasswordEmail')) {
-    var actionResponse = CardService.newActionResponseBuilder()
-      .setNotification(CardService.newNotification()
-        .setText('重設密碼選項僅能選取一個'))
-      .build();
-    return actionResponse;
-  }
-
-  if (
-    !formData.summary &&
-    !(formData.actionOptions.length === 1 &&
-      (formData.actionOptions.includes('ResetPasswordUsername') ||
-        formData.actionOptions.includes('ResetPasswordEmail'))
-    )
-  ) {
+  if (!formData.summary) {
     var actionResponse = CardService.newActionResponseBuilder()
       .setNotification(CardService.newNotification()
         .setText('請輸入操作摘要'))
@@ -1004,38 +983,6 @@ function runActions(e) {
       } else {
         formData.statusGrantIpbe += '✅';
       }
-    }
-  }
-
-  if (formData.actionOptions.includes('ResetPasswordUsername') && formData.normalizedUsername) {
-    var res = apiRequest('POST', {
-      action: 'resetpassword',
-      user: formData.normalizedUsername,
-      token: tokens.csrftoken,
-    });
-    console.log('resetpassword username', res);
-    if (res.resetpassword && res.resetpassword.status === 'success') {
-      formData.statusResetPasswordUsername = ' ✅';
-    } else {
-      if (res.error && res.error.info) {
-        formData.statusResetPasswordUsername += '❌ ' + res.error.info;
-      } else {
-        formData.statusResetPasswordUsername += '❌ 未知錯誤';
-      }
-    }
-  }
-
-  if (formData.actionOptions.includes('ResetPasswordEmail') && formData.normalizedUsername) {
-    var res = apiRequest('POST', {
-      action: 'resetpassword',
-      email: formData.email,
-      token: tokens.csrftoken,
-    });
-    console.log('resetpassword email', res);
-    if (res.resetpassword && res.resetpassword.status === 'success') {
-      formData.statusResetPasswordEmail = ' ✅';
-    } else {
-      formData.statusResetPasswordEmail = ' ❌ 未知錯誤';
     }
   }
 
