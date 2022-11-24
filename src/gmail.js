@@ -1,4 +1,4 @@
-var SUMMARY_SUFFIX = ' #UZHG v1.1.2-alpha';
+var SUMMARY_SUFFIX = ' #UZHG v1.2.0-alpha';
 var SERVICE_SCOPE_REQUESTS = 'basic highvolume editpage editprotected createeditmovepage createaccount createlocalaccount';
 var COLOR_ENABLED = '#039BE5';
 var COLOR_DISABLED = '#9E9E9E';
@@ -882,7 +882,7 @@ function runActions(e) {
     }
   }
 
-  /* Not supported: https://phabricator.wikimedia.org/T322468
+  /* Not supported: https://phabricator.wikimedia.org/T322468 */
   if (formData.actionOptions.includes('CreateLocal') && formData.normalizedUsername) {
     var res = apiRequest('POST', {
       action: 'createlocalaccount',
@@ -895,6 +895,9 @@ function runActions(e) {
     if (res.error) {
       if (res.error[0] && res.error[0][0] && res.error[0][0].code) {
         formData.statusCreateLocal = ' ❌ ' + res.error[0][0].code;
+        if (res.error[0][0].code === 'blocked') {
+          formData.statusCreateLocal += ': ' + res.error[0][0].params[2];
+        }
       } else {
         formData.statusCreateLocal = ' ❌ 未知錯誤';
       }
@@ -902,7 +905,6 @@ function runActions(e) {
       formData.statusCreateLocal = ' ✅';
     }
   }
-  */
 
   if (formData.actionOptions.includes('GrantIpbe') && formData.normalizedUsername) {
     var res = apiRequest('POST', {
