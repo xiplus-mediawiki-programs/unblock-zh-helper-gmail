@@ -101,6 +101,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('希望使用的用戶名是［Example] 。').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望使用的使用者名稱是Example，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望创建的用户名為:Example，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('希望使用的使用者名称是[Example ]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望创建的用户名為:Example、').username).toStrictEqual(['Example']);
 		expect(parseMailBody('使用的用户名是“Example”').username).toStrictEqual(['Example']);
 		expect(parseMailBody('希望使用的用户名是：【Example】').username).toStrictEqual(['Example']);
