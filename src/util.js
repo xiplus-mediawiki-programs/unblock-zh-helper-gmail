@@ -15,7 +15,6 @@ function stripEmail(text) {
 
 function cleanHtml(text) {
   return text
-    .replace(/<blockquote .+$/s, '')
     .replace(/(<br[ >])/g, '\n$1')
     .replace(/<br\/>/g, '\n')
     .replace(/<\/dd>/g, '\n')
@@ -44,6 +43,15 @@ function stripMailQuote(text) {
   text = text.replace(/^(.*?)---*\s*原始邮件(.*)$/s, '$1');
   return text;
 }
+
+var BANNED_USERNAMES = [
+  '',
+  '您想要使用的用户名',
+  '您的用戶名',
+  '您的用户名',
+  '请求的账户名称',
+  '还未注册',
+];
 
 function parseMailBody(text) {
   var result = {
@@ -79,7 +87,8 @@ function parseMailBody(text) {
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
     var username = match[1].replace(/_/g, ' ').trim();
-    if (['', '请求的账户名称', '您的用戶名', '您的用户名', '还未注册'].includes(username)) {
+    username = username[0].toUpperCase() + username.slice(1);
+    if (BANNED_USERNAMES.includes(username)) {
       continue;
     }
     if (!result.username.includes(username)) {
