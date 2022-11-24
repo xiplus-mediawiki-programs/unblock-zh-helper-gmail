@@ -424,7 +424,7 @@ function createCard(e) {
   }
 
   if (formData.normalizedUsername) {
-    actionCheckboxes.addItem('重設「' + formData.normalizedUsername + '」密碼' + formData.statusResetPasswordEmail,
+    actionCheckboxes.addItem('重設「' + formData.normalizedUsername + '」密碼' + formData.statusResetPasswordUsername,
       'ResetPasswordUsername', formData.actionOptions.includes('ResetPasswordUsername'));
     anyAction = true;
   }
@@ -1017,7 +1017,11 @@ function runActions(e) {
     if (res.resetpassword && res.resetpassword.status === 'success') {
       formData.statusResetPasswordUsername = ' ✅';
     } else {
-      formData.statusResetPasswordUsername = ' ❌ 未知錯誤';
+      if (res.error && res.error.info) {
+        formData.statusResetPasswordUsername += '❌ ' + res.error.info;
+      } else {
+        formData.statusResetPasswordUsername += '❌ 未知錯誤';
+      }
     }
   }
 
@@ -1029,9 +1033,9 @@ function runActions(e) {
     });
     console.log('resetpassword email', res);
     if (res.resetpassword && res.resetpassword.status === 'success') {
-      formData.statusResetPasswordUsername = ' ✅';
+      formData.statusResetPasswordEmail = ' ✅';
     } else {
-      formData.statusResetPasswordUsername = ' ❌ 未知錯誤';
+      formData.statusResetPasswordEmail = ' ❌ 未知錯誤';
     }
   }
 
