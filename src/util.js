@@ -41,6 +41,7 @@ function stripMailQuote(text) {
   text = text.replace(/(\n>.*)*\n*$/, '');
   text = text.replace(/^(.*?)________________________________*(.*)$/s, '$1');
   text = text.replace(/^(.*?)---*\s*原始邮件(.*)$/s, '$1');
+  text = text.replace(/^(.*?)于\d+年\d+月\d+日.{0,10} \d+:\d+写道：(.*)$/s, '$1');
   return text;
 }
 
