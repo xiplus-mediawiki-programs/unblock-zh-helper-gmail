@@ -47,6 +47,7 @@ function stripMailQuote(text) {
 
 var BANNED_USERNAMES = [
   '',
+  '否可用',
   '您想要使用的用户名',
   '您的用戶名',
   '您的用户名',
