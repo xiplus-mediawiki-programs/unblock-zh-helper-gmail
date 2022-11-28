@@ -64,6 +64,9 @@ function checkStatus(username, ip) {
         } else if (cancreateerror.code === 'antispoof-name-illegal') {
           result.usernameStatus = 'banned';
           result.usernameBannedDetail = '使用者名稱無效：' + cancreateerror.params[1];
+        } else if (cancreateerror.code === 'titleblacklist-forbidden') {
+          result.usernameStatus = 'banned_cancreate';
+          result.usernameBannedDetail = 'titleblacklist：' + cancreateerror.params[0];
         } else if (cancreateerror.code === '_1') {
           result.usernameStatus = 'banned';
           result.usernameBannedDetail = cancreateerror.params[0]

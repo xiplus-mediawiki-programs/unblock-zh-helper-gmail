@@ -1,4 +1,4 @@
-var SUMMARY_SUFFIX = ' #UZHG v1.3.1-alpha';
+var SUMMARY_SUFFIX = ' #UZHG v1.4.0-alpha';
 var SERVICE_SCOPE_REQUESTS = 'basic highvolume editpage editprotected createeditmovepage createaccount createlocalaccount';
 var COLOR_ENABLED = '#039BE5';
 var COLOR_DISABLED = '#9E9E9E';
@@ -324,7 +324,7 @@ function createCard(e) {
         statusText += '✅ 帳號可以建立（<a href="' + googleurl + '">Google</a>）\n';
       }
 
-      if (formData.usernameStatus === 'banned') {
+      if (['banned', 'banned_cancreate'].includes(formData.usernameStatus)) {
         statusText += '❌ 此使用者名稱被系統禁止'
         if (formData.usernameBannedDetail) {
           statusText += '：' + formData.usernameBannedDetail;
@@ -333,7 +333,7 @@ function createCard(e) {
       }
     }
 
-    if (!formData.reqAccount && (formData.usernameStatus === 'banned' || formData.usernameStatus === 'not_exists')) {
+    if (!formData.reqAccount && ['not_exists', 'banned', 'banned_cancreate'].includes(formData.usernameStatus)) {
       statusText += '❌ 帳號不存在（<a href="' + caurl + '">全域帳號</a>）\n';
     }
 
@@ -414,7 +414,7 @@ function createCard(e) {
 
   var anyAction = false;
 
-  if (formData.reqAccount && formData.usernameStatus === 'not_exists') {
+  if (formData.reqAccount && ['not_exists', 'banned_cancreate'].includes(formData.usernameStatus)) {
     actionCheckboxes.addItem('建立帳號' + formData.statusCreateAcccount,
       'CreateAccount', formData.actionOptions.includes('CreateAccount'));
     anyAction = true;
@@ -701,7 +701,7 @@ function autoActionOptions() {
         formData.actionOptions.push('CreateAccount');
         formData.mailOptionsUsername = 'created';
         userToBeCreated = true;
-      } else if (formData.usernameStatus == 'banned') {
+      } else if (['banned', 'banned_cancreate'].includes(formData.usernameStatus)) {
         formData.mailOptionsUsername = 'banned';
       } else if (formData.usernameStatus == 'exists') {
         formData.mailOptionsUsername = 'used';
@@ -753,7 +753,7 @@ function autoMailOptions() {
     if (formData.normalizedUsername) {
       if (formData.usernameStatus == 'exists' || formData.usernameStatus == 'needs_local') {
         formData.mailOptionsUsername = 'used';
-      } else if (formData.usernameStatus == 'banned') {
+      } else if (['banned', 'banned_cancreate'].includes(formData.usernameStatus)) {
         formData.mailOptionsUsername = 'banned';
       }
     } else {
@@ -762,7 +762,7 @@ function autoMailOptions() {
   } else if (formData.reqIpbe) {
     if (!formData.normalizedUsername) {
       formData.mailOptionsUsername = 'nousername';
-    } else if (formData.usernameStatus == 'banned' || formData.usernameStatus == 'not_exists') {
+    } else if (['not_exists', 'banned', 'banned_cancreate'].includes(formData.usernameStatus)) {
       formData.mailOptionsUsername = 'not_exists';
     }
   } else if (formData.inputBlockAppeal) {
@@ -849,6 +849,7 @@ function runActions(e) {
       reason: formData.summary + SUMMARY_SUFFIX,
       createreturnurl: 'https://zh.wikipedia.org',
       createtoken: tokens.createaccounttoken,
+      ignoreTitleBlacklist: '1',
     })
     console.log('createaccount', res);
 
