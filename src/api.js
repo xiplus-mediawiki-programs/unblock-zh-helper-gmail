@@ -152,7 +152,7 @@ function checkStatus(username, ip) {
       result.blockReason = res.query.blocks[0].reason;
     }
   }
-  if (res.query.globalblocks && res.query.globalblocks.length > 0) {
+  if (!result.blocked && res.query.globalblocks && res.query.globalblocks.length > 0) {
     result.blocked = true;
     result.blockBy = res.query.globalblocks[0].by;
     result.blockReason = res.query.globalblocks[0].reason;
