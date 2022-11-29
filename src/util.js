@@ -35,6 +35,12 @@ function cleanHtml(text) {
     .replace(/&quot;/g, '"');
 }
 
+function htmlentities(str) {
+  return str.replace(/[<>&]/g, function(i) {
+    return '&#' + i.charCodeAt(0) + ';';
+  });
+}
+
 function stripMailQuote(text) {
   text = text.replace(/\r\n/g, '\n');
   text = text.replace(/\r/g, '\n');

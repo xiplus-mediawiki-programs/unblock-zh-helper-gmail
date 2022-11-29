@@ -160,6 +160,7 @@ function checkStatus(username, ip) {
   if (/(blocked proxy|open (proxy|proxies))/i.test(result.blockReason)) {
     result.isProxyBlocked = true;
   }
+  result.blockReason = htmlentities(result.blockReason);
 
   return result;
 }
