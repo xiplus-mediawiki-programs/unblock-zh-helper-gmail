@@ -157,7 +157,7 @@ function checkStatus(username, ip) {
     result.blockBy = res.query.globalblocks[0].by;
     result.blockReason = res.query.globalblocks[0].reason;
   }
-  if (/(blocked proxy|open (proxy|proxies))/i.test(result.blockReason)) {
+  if (/(blocked proxy|open (proxy|proxies))/i.test(result.blockReason) && !/ACC notice/.test(result.blockReason)) {
     result.isProxyBlocked = true;
   }
   result.blockReason = htmlentities(result.blockReason);
