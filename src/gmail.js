@@ -362,11 +362,16 @@ function createCard(e) {
       var rightlog = 'https://zh.wikipedia.org/wiki/Special:Log?page=' + encodeURIComponent('User:' + formData.normalizedUsername);
       statusText += ' 帳號已被註冊（<a href="' + caurl + '">全域帳號</a>、<a href="' + rightlog + '">日誌</a>）\n';
     }
+  }
 
-    if (formData.accountBlocked) {
-      var blocklog = 'https://zh.wikipedia.org/wiki/Special:Log/block?page=User:' + encodeURIComponent(formData.normalizedUsername);
-      statusText += '⛔️ <a href="' + blocklog + '">帳號被封鎖</a>\n';
+  if (formData.accountBlocked) {
+    var blocklog;
+    if (formData.normalizedUsername) {
+      blocklog = 'https://zh.wikipedia.org/wiki/Special:Log/block?page=User:' + encodeURIComponent(formData.normalizedUsername);
+    } else {
+      blocklog = 'https://zh.wikipedia.org/wiki/Special:BlockList?wpTarget=' + encodeURIComponent(formData.ip);
     }
+    statusText += '⛔️ <a href="' + blocklog + '">帳號被封鎖</a>\n';
   }
 
   if (formData.ip) {

@@ -145,11 +145,15 @@ function checkStatus(username, ip) {
   // ip block
   if (res.query.blocks && res.query.blocks.length > 0) {
     var block = res.query.blocks[0];
-    // ignore account blocks
     if (block.userid === 0 || block.userid === undefined) {
       result.blocked = true;
-      result.blockBy = res.query.blocks[0].by;
-      result.blockReason = res.query.blocks[0].reason;
+      result.blockBy = block.by;
+      result.blockReason = block.reason;
+    } else if (block.userid > 0) {
+      // account blocks
+      result.accountBlocked = true;
+      result.accountBlockBy = block.by;
+      result.accountBlockReason = block.reason;
     }
   }
   if (!result.blocked && res.query.globalblocks && res.query.globalblocks.length > 0) {
