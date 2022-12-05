@@ -31,6 +31,10 @@
         {
           "label": "View on GitHub",
           "openLink": "https://github.com/Xi-Plus/unblock-zh-helper-gmail"
+        },
+        {
+          "label": "Logout Wikipedia",
+          "runFunction": "resetOAuth"
         }
       ]
     },

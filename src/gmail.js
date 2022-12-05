@@ -1,4 +1,4 @@
-var SUMMARY_SUFFIX = ' #UZHG v1.4.0';
+var SUMMARY_SUFFIX = ' #UZHG v1.4.1-alpha';
 var SERVICE_SCOPE_REQUESTS = 'basic highvolume editpage editprotected createeditmovepage createaccount createlocalaccount';
 var COLOR_ENABLED = '#039BE5';
 var COLOR_DISABLED = '#9E9E9E';
@@ -1117,13 +1117,20 @@ function getOAuthService() {
 function authCallback(callbackRequest) {
   var authorized = getOAuthService().handleCallback(callbackRequest);
   if (authorized) {
-    return HtmlService.createHtmlOutput(
-      'Success! <script>setTimeout(function() { top.window.close() }, 1);</script>');
+    return HtmlService.createHtmlOutput('已成功登入中文維基百科，請關閉本視窗以繼續。');
   } else {
-    return HtmlService.createHtmlOutput('Denied');
+    return HtmlService.createHtmlOutput('登入失敗。');
   }
 }
 
-function resetOAuth() {
+function resetOAuth(e) {
   getOAuthService().reset();
+  cache.remove('wpUsername');
+
+  return CardService.newActionResponseBuilder()
+    .setNavigation(CardService.newNavigation()
+      .updateCard(onHomepage(e))
+    )
+    .setStateChanged(true)
+    .build();
 }
