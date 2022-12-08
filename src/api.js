@@ -23,6 +23,7 @@ function checkStatus(username, ip) {
     var payload = {
       action: 'query',
       format: 'json',
+      formatversion: '2',
       meta: 'globaluserinfo',
       list: 'users',
       usprop: 'cancreate|centralids',
@@ -46,7 +47,7 @@ function checkStatus(username, ip) {
       var user = res.query.users[0];
       result.normalizedUsername = user.name;
       if (user.userid) {
-        if (user.attachedwiki.CentralAuth === '') {
+        if (user.attachedwiki.CentralAuth) {
           result.usernameStatus = 'exists';
         } else {
           result.usernameStatus = 'needs_local';
@@ -86,8 +87,15 @@ function checkStatus(username, ip) {
         result.usernameStatus = 'not_exists';
       }
     }
-    if (res.query.globaluserinfo && res.query.globaluserinfo.registration) {
-      result.usernameRegistration = res.query.globaluserinfo.registration;
+
+    var globaluserinfo = res.query.globaluserinfo;
+    if (globaluserinfo) {
+      if (globaluserinfo.registration) {
+        result.usernameRegistration = globaluserinfo.registration;
+      }
+      if (result.usernameStatus === 'needs_local' && globaluserinfo.home === 'zhwiki') {
+        result.usernameStatus = 'exists';
+      }
     }
   }
 
