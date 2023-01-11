@@ -384,15 +384,19 @@ function createCard(e) {
 
   if (formData.ip) {
     var blocklisturl = 'https://zh.wikipedia.org/wiki/Special:BlockList?wpTarget=' + encodeURIComponent(formData.ip);
-    if (formData.blocked) {
-      if (formData.isProxyBlocked) {
-        statusText += '✅';
+    if (formData.ipStatus === 'ok') {
+      if (formData.blocked) {
+        if (formData.isProxyBlocked) {
+          statusText += '✅';
+        } else {
+          statusText += '⚠️';
+        }
+        statusText += ' IP被封鎖：' + formData.blockReason;
       } else {
-        statusText += '⚠️';
+        statusText += '❌ IP未被封鎖';
       }
-      statusText += ' IP被封鎖：' + formData.blockReason;
     } else {
-      statusText += '❌ IP未被封鎖';
+      statusText += '❌ ' + formData.blockReason;
     }
     statusText += '（<a href="' + blocklisturl + '">檢查</a>）\n';
   }

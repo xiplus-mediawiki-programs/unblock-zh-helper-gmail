@@ -8,6 +8,7 @@ function checkStatus(username, ip) {
     accountBlocked: false,
     accountBlockBy: '',
     accountBlockReason: '',
+    ipStatus: '',
     blocked: false,
     isProxyBlocked: false,
     blockBy: '',
@@ -136,9 +137,19 @@ function checkStatus(username, ip) {
   var res = apiRequest('GET', query);
   console.log('check result 2', JSON.stringify(res));
 
+  if (res.error) {
+    if (res.error.code === 'param_ip') {
+      result.ipStatus = 'param_ip';
+      result.blockReason = res.error.info;
+      return result;
+    }
+  }
+
   if (!res.query) {
     return result;
   }
+
+  result.ipStatus = 'ok';
 
   if (res.query.users) {
     var user = res.query.users[0];
