@@ -82,10 +82,10 @@ function parseMailBody(text) {
   }
 
   var matches = [
-    ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)[是為]?[：:]?"(?:User:)?(.+?)"/g),
-    ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)[是為]?[：:]?“(?:User:)?(.+?)”/g),
-    ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)[是為]?[：:]?【(?:User:)?(.+?)】/g),
-    ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)[是為]?[：:]?\s*[\[［]\s*(?:User:)?(.+?)\s*[\]］]/g),
+    ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)[是為]?[：:]?"(?:User:)?(.*?)"/g),
+    ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)[是為]?[：:]?“(?:User:)?(.*?)”/g),
+    ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)[是為]?[：:]?【(?:User:)?(.*?)】/g),
+    ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)[是為]?[：:]?\s*[\[［]\s*(?:User:)?(.*?)\s*[\]］]/g),
     ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)(?:[是為为：:]|[是為为][：:])\n?(?:User:)?([^\[\]［］【】"“”：:，、。；,.\n]+)[，、。；,.\n]/g),
     ...text.matchAll(/创建名为(.+?)的账户/g),
     ...text.matchAll(/来自维基百科用户“(.+?)”的电子邮件/g),
@@ -96,6 +96,9 @@ function parseMailBody(text) {
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
     var username = match[1].replace(/_/g, ' ').trim();
+    if (username === '') {
+      continue;
+    }
     username = username[0].toUpperCase() + username.slice(1);
     if (BANNED_USERNAMES.includes(username)) {
       continue;
