@@ -39,6 +39,15 @@ function checkStatus(username, ip) {
     var res = JSON.parse(resp.getContentText('utf-8'));
     console.log('check result 1', JSON.stringify(res));
 
+    if (res.error) {
+      if (res.error.code === 'baduser') {
+        result.normalizedUsername = username;
+        result.usernameStatus = 'baduser';
+        result.usernameBannedDetail = res.error.info;
+        return result;
+      }
+    }
+
     if (!res.query) {
       return result;
     }

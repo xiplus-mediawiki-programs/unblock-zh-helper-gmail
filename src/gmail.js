@@ -331,6 +331,14 @@ function createCard(e) {
         }
         statusText += '（<a href="' + caurl + '">全域帳號</a>）\n';
       }
+
+      if (['baduser'].includes(formData.usernameStatus)) {
+        statusText += '❌ API錯誤'
+        if (formData.usernameBannedDetail) {
+          statusText += '：' + formData.usernameBannedDetail;
+        }
+        statusText += '\n';
+      }
     }
 
     if (!formData.reqAccount && ['not_exists', 'banned', 'banned_cancreate'].includes(formData.usernameStatus)) {
