@@ -95,7 +95,10 @@ function parseMailBody(text) {
     ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20}[:：] ?([^,.，。；\n]+?)[.,，。；\n]/ig),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
-    var username = match[1].replace(/_/g, ' ').trim();
+    var username = match[1]
+      .replace(/_/g, ' ')
+      .replace(/\u200B/g, '') // zero width space
+      .trim();
     if (username === '') {
       continue;
     }
