@@ -120,6 +120,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('我的账号：Example.').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名是[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名是"Example"，').username).toStrictEqual(['Example']);
+		expect(parseMailBody('用户名是「Example」。').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名为：Example；').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名为User:Example，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册账户[Example]，').username).toStrictEqual(['Example']);
@@ -140,6 +141,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('My username is [Example]\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('new account:Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('account ？ID：ExampleExample；Code：XXXXXXXXXXXX\n').username).toStrictEqual(['ExampleExample']);
+		expect(parseMailBody('the username I expect to use is “Example”.').username).toStrictEqual(['Example']);
 		// false positive
 		expect(parseMailBody('我的账号被封锁，').username).toStrictEqual([]);
 		// blacklist
