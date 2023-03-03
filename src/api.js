@@ -1,4 +1,8 @@
 function checkStatus(username, ip) {
+  if (username === '-') {
+    username = '';
+  }
+
   var result = {
     needChecks: false,
     usernameStatus: '',
