@@ -45,11 +45,11 @@ ________________________________
 
 describe('stripEmail', async () => {
 	test('email', async () => {
-		expect(stripEmail('alice@example.org')).toBe('alice@example.org');
-		expect(stripEmail('Alice <alice@example.org>')).toBe('alice@example.org');
-		expect(stripEmail('"Al ice" <alice@example.org>')).toBe('alice@example.org');
-		expect(stripEmail('<alice@example.org>')).toBe('alice@example.org');
-		expect(stripEmail('a <alice@example.org>, b <bob@example.org>')).toBe('alice@example.org');
+		expect(stripEmail('alice@example.org')).toStrictEqual(['alice@example.org']);
+		expect(stripEmail('Alice <alice@example.org>')).toStrictEqual(['alice@example.org']);
+		expect(stripEmail('"Al ice" <alice@example.org>')).toStrictEqual(['alice@example.org']);
+		expect(stripEmail('<alice@example.org>')).toStrictEqual(['alice@example.org']);
+		expect(stripEmail('a <alice@example.org>, b <bob@example.org>')).toStrictEqual(['alice@example.org', 'bob@example.org']);
 	});
 });
 

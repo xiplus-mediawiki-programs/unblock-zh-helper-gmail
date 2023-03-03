@@ -49,16 +49,30 @@ function putFormData(formData) {
 }
 
 function getCorrectSender(message) {
-  var sender = stripEmail(message.getFrom());
-  if (sender === WIKI_SENDER_MAIL) {
-    console.log('sender is wiki, use reply-to (' + message.getReplyTo() + ') instead');
-    return stripEmail(message.getReplyTo());
+  var emails = stripEmail(message.getFrom());
+  for (var i = 0; i < emails.length; i++) {
+    if (MAIL_BLACKLIST.indexOf(emails[i]) === -1) {
+      return emails[i];
+    }
   }
-  if (sender === UNBLOCK_ZH_MAIL) {
-    console.log('sender is unblock-zh, use cc (' + message.getCc() + ') instead');
-    return stripEmail(message.getCc());
+
+  console.log('sender (' + message.getFrom() + ') in blacklist use reply-to (' + message.getReplyTo() + ') instead');
+  emails = stripEmail(message.getReplyTo());
+  for (var i = 0; i < emails.length; i++) {
+    if (MAIL_BLACKLIST.indexOf(emails[i]) === -1) {
+      return emails[i];
+    }
   }
-  return sender;
+
+  console.log('reply-to (' + message.getFrom() + ') in blacklist use reply-to (' + message.getCc() + ') instead');
+  emails = stripEmail(message.getCc());
+  for (var i = 0; i < emails.length; i++) {
+    if (MAIL_BLACKLIST.indexOf(emails[i]) === -1) {
+      return emails[i];
+    }
+  }
+
+  return '';
 }
 
 function createCard(e) {
@@ -165,7 +179,7 @@ function createCard(e) {
     formData.ip = parseResult.iporid[0];
   }
   if (!formData.email) {
-    formData.email = stripEmail(requester);
+    formData.email = requester;
   }
   if (!formData.summary) {
     formData.summary = '[[listarchive:' + archiveUrl + '|unblock-zh申請]]';

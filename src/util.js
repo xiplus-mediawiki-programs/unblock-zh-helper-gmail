@@ -9,8 +9,11 @@ function parseArchiveUrl(text) {
 }
 
 function stripEmail(text) {
-  text = text.replace(/^.*?<((?:.+?)@.+?(?:\..+?)+)>.*$/, '$1');
-  return text;
+  var m = text.match(/([\w.-]+@\w+(\.\w+)+)/g);
+  if (m) {
+    return Object.values(m);
+  }
+  return m || [];
 }
 
 function cleanHtml(text) {
