@@ -38,6 +38,7 @@ var i18nMessages = {
     'mail-please-provide-footer': '以便我们做下一步处理（复制您看到的文字对我们处理较为方便，请避免使用截图）。',
     'mail-hello': '您好：',
     'mail-reply-to-all': '请在回复邮件时确保收件者包含 unblock-zh@lists.wikimedia.org ，否则可能无法收到回复（可使用邮件软件的“回复所有人”功能）',
+    'mail-username-prefix': '中文维基百科管理员 User:',
   },
   'zh-hant': {
     'use-username-checker': '請務必使用使用者名稱檢查工具 {0} 來確認您想要註冊的使用者名稱是否可用。',
@@ -78,5 +79,6 @@ var i18nMessages = {
     'mail-please-provide-footer': '以便我們做下一步處理（複製您看到的文字對我們處理較為方便，請避免使用截圖）。',
     'mail-hello': '您好：',
     'mail-reply-to-all': '請在回覆郵件時確保收件者包含 unblock-zh@lists.wikimedia.org ，否則可能無法收到回覆（可使用郵件軟體的「回覆所有人」功能）',
+    'mail-username-prefix': '中文維基百科管理員 User:',
   }
 };

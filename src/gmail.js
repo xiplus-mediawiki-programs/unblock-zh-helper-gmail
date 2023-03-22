@@ -506,7 +506,7 @@ function createCard(e) {
 
   var mailContent = mailContentCore;
   mailContent += '\n\n' + mt('mail-reply-to-all');
-  mailContent += '\n\n' + 'User:' + wpUsername;
+  mailContent += '\n\n' + mt('mail-username-prefix') + wpUsername;
 
   var mailContentInput = CardService.newTextInput()
     .setFieldName('mailContent')
