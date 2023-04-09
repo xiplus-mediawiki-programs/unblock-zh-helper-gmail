@@ -34,7 +34,7 @@ function onHomepage(e) {
     text += '\n⛔️ 此 IP 位址被封鎖，您需要<a href="' + unblockUrl + '">解除此封鎖</a>才能正常使用「強制建立本地帳號」功能（<a href="' + phabUrl + '">phab:T322468</a>）';
   }
 
-  text += '\n\n隱私聲明：本工具會記錄您所瀏覽的電子郵件內容以供改善工具（權限 <a href="https://developers.google.com/apps-script/add-ons/concepts/workspace-scopes">gmail.addons.current.message.readonly</a>），但不會讀取您的其他電子郵件。如果您要閱讀其他非 unblock-zh 的郵件，請關閉此小工具（右上角關閉按鈕）。';
+  text += '\n\n隱私聲明：本工具會記錄您所瀏覽的電子郵件內容以供改善工具（權限 <a href="https://developers.google.com/apps-script/add-ons/concepts/workspace-scopes">gmail.addons.current.message.readonly</a>），但不會讀取您的其他電子郵件。如果您要閱讀其他非 unblock-zh 的郵件，請關閉此工具（右上角關閉按鈕）。';
 
   var textParagraph = CardService.newTextParagraph()
     .setText(text);
