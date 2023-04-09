@@ -81,7 +81,7 @@ function parseMailBody(text) {
   if (text.match(/账号.{0,10}(申请|注册)|(申请|帮忙|想|[還还]未|希望)[註注][冊册]|进行注册|(希望|需要|申请).{0,10}用[户戶]名|创建.{0,10}账号|Account request/)) {
     result.request.acc = true;
   }
-  if (text.match(/IP封[禁鎖](豁免|例外)|使用代理|中国大陆|当前的IP地址|blocked proxy|open (proxy|proxies)|(ban|block(ing)?) (exception|exemption)/)) {
+  if (text.match(/IP(封[禁鎖])?(豁免|例外)|使用代理|中国大陆|当前的IP地址|blocked proxy|open (proxy|proxies)|(ban|block(ing)?) (exception|exemption)/i)) {
     result.request.ipbe = true;
   }
 

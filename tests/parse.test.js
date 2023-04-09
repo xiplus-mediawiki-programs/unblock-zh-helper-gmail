@@ -89,6 +89,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('来自中国大陆').request.ipbe).toBeTruthy();
 		expect(parseMailBody('由于中国大陆防火墙').request.ipbe).toBeTruthy();
 		expect(parseMailBody('当前的IP地址').request.ipbe).toBeTruthy();
+		expect(parseMailBody('申请ip豁免').request.ipbe).toBeTruthy();
 		expect(parseMailBody('IP blocking exceptions').request.ipbe).toBeTruthy();
 		expect(parseMailBody('IP ban exemption').request.ipbe).toBeTruthy();
 	});
