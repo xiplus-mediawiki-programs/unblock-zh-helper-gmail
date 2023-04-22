@@ -295,7 +295,7 @@ function generateMailContent(formData) {
   } else if (formData.mailOptionsIpbe === 'not_blocked') {
     otherText.push(mt('mail-ip-not-blocked'));
   } else if (formData.mailOptionsIpbe === 'granted') {
-    mainText.push(mt('mail-ipbe-granted'));
+    mainText.push(mt('mail-ipbe-granted', [formData.normalizedUsername]));
   }
   // Password
   if (formData.mailOptionsOther.includes('resetpwd')) {
