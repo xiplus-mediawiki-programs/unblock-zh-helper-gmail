@@ -181,7 +181,7 @@ function createCard(e) {
   if (!formData.email) {
     formData.email = requester;
   }
-  if (!formData.summary) {
+  if (!formData.summary && archiveUrl) {
     formData.summary = '[[listarchive:' + archiveUrl + '|unblock-zh申請]]';
   }
 
