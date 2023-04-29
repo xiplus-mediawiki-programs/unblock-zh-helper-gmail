@@ -94,9 +94,9 @@ function parseMailBody(text) {
     ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)(?:[是為为：:]|[是為为][：:])\n?(?:User:)?([^\[\]［］【】「」"“”：:，、。；,\n]+)[，、。；,.\n]/g),
     ...text.matchAll(/创建名为(.+?)的账户/g),
     ...text.matchAll(/来自维基百科用户“(.+?)”的电子邮件/g),
-    ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20} is ([^\[\]"“”]+?)[.,\n]/ig),
+    ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20} is ([^\[\]"“”「」]+?)[.,\n]/ig),
     ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20} is \[([^\[\]]+?)\]/ig),
-    ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20} is ["“]([^\[\]"]+?)["”]/ig),
+    ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20} is ["“「]([^\[\]"]+?)["”」]/ig),
     ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20}[:：] ?([^,.，。；\n]+?)[.,，。；\n]/ig),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
