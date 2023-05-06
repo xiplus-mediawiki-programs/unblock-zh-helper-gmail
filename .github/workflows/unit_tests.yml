@@ -2,12 +2,14 @@ name: Unit tests
 
 on:
   push:
+    branches:
+      - '**'
     paths:
-    - '.github/workflows/unit_tests.yml'
-    - 'src/util.js'
-    - 'tests/**'
-    - 'package.json'
-    - 'package-lock.json'
+      - '.github/workflows/unit_tests.yml'
+      - 'src/util.js'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
 
 jobs:
   lint:
