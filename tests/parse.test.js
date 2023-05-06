@@ -131,6 +131,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('申请注册帐户【Example】').username).toStrictEqual(['Example']);
 		expect(parseMailBody('创建名为Example的账户').username).toStrictEqual(['Example']);
 		expect(parseMailBody('来自维基百科用户“Example”的电子邮件').username).toStrictEqual(['Example']);
+		expect(parseMailBody('为【Example】申请IP封禁豁免').username).toStrictEqual(['Example']);
 		// two name
 		expect(parseMailBody('申请注册账户[A] 申请注册账户[B]').username).toStrictEqual(['B', 'A']);
 		// underline
@@ -143,6 +144,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('username：Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('User ID is Example,').username).toStrictEqual(['Example']);
 		expect(parseMailBody('My username is [Example]\n').username).toStrictEqual(['Example']);
+		expect(parseMailBody('My account name is : Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('new account:Example\n').username).toStrictEqual(['Example']);
 		expect(parseMailBody('account ？ID：ExampleExample；Code：XXXXXXXXXXXX\n').username).toStrictEqual(['ExampleExample']);
 		expect(parseMailBody('the username I expect to use is “Example”.').username).toStrictEqual(['Example']);
