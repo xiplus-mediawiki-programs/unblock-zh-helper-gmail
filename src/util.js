@@ -106,6 +106,7 @@ function parseMailBody(text) {
     var username = match[1]
       .replace(/_/g, ' ')
       .replace(/\u200B/g, '') // zero width space
+      .replace(/&#39;/g, "'")
       .trim();
     if (username === '') {
       continue;
