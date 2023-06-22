@@ -226,7 +226,7 @@ function generateMailContent(formData) {
   if (formData.mailOptionsOther.includes('nonsense')) {
     mainText.push(
       mt('mail-can-not-understand', [
-        '[LINK:https://zh.wikipedia.org/wiki/Wikipedia:通过Unblock-zh申请IP封禁例外指南]',
+        '[LINK:https://zh.wikipedia.org/wiki/Wikipedia:通过Unblock-zh申请IP封禁豁免指南]',
       ])
     );
   }

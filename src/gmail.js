@@ -996,11 +996,11 @@ function runActions(e) {
       }
 
       // rfipbe
-      var summary = '[[Special:UserRights/' + formData.normalizedUsername + '|授予' + formData.normalizedUsername + 'IP封禁例外權]]備案';
+      var summary = '[[Special:UserRights/' + formData.normalizedUsername + '|授予' + formData.normalizedUsername + 'IP封禁豁免權]]備案';
       var appendtext = '\n\n{{subst:rfp|1=' + formData.normalizedUsername + '|2=經由' + formData.summary + '的授權備案。|status=+}}';
       var res = apiRequest('POST', {
         action: 'edit',
-        title: 'Wikipedia:權限申請/申請IP封禁例外權',
+        title: 'Wikipedia:權限申請/申請IP封禁豁免權',
         summary: summary + SUMMARY_SUFFIX,
         appendtext: appendtext,
         token: tokens.csrftoken,
