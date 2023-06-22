@@ -976,6 +976,7 @@ function runActions(e) {
         var res = apiRequest('POST', {
           action: 'edit',
           title: usertalk,
+          redirect: 1,
           section: 'new',
           sectiontitle: '',
           text: '{{subst:Ipexempt granted}}',
@@ -1001,6 +1002,7 @@ function runActions(e) {
       var res = apiRequest('POST', {
         action: 'edit',
         title: 'Wikipedia:權限申請/申請IP封禁豁免權',
+        redirect: 1,
         summary: summary + SUMMARY_SUFFIX,
         appendtext: appendtext,
         token: tokens.csrftoken,
