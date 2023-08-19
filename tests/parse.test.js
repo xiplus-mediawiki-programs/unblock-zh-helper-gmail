@@ -126,6 +126,7 @@ describe('parseMailBody', async () => {
 		expect(parseMailBody('用户名是"Example"，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名是「Example」。').username).toStrictEqual(['Example']);
 		expect(parseMailBody('用户名为：Example；').username).toStrictEqual(['Example']);
+		expect(parseMailBody('用户名为“Example”，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('我的用户名为User:Example，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册账户[Example]，').username).toStrictEqual(['Example']);
 		expect(parseMailBody('申请注册帐户【Example】').username).toStrictEqual(['Example']);
