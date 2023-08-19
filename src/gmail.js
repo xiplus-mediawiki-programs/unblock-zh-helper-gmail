@@ -25,6 +25,7 @@ function getFormData() {
     reqIpbe: false,
     reqUnblock: false,
     reqPassword: false,
+    reqNone: false,
     username: '',
     email: '',
     ip: '',
@@ -251,6 +252,15 @@ function createCard(e) {
     )
     .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
     .setBackgroundColor(formData.reqPassword ? COLOR_ENABLED : COLOR_DISABLED));
+
+  reqButtonSet.addButton(CardService.newTextButton()
+    .setText('無')
+    .setOnClickAction(CardService.newAction()
+      .setFunctionName('updateRequest')
+      .setParameters({ key: 'reqNone', value: 'true' })
+    )
+    .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
+    .setBackgroundColor(COLOR_DISABLED));
 
   sectionInput.addWidget(reqButtonSet);
 
@@ -646,10 +656,11 @@ function updateRequest(e) {
   var newVal = e.parameters.value === 'true';
   console.log('Update "' + key + '" from "' + formData[key].toString() + '" to "' + newVal.toString() + '"');
   formData[key] = newVal;
-  if (['reqUnblock', 'reqPassword'].includes(key) && newVal) {
+  if (['reqUnblock', 'reqPassword', 'reqNone'].includes(key) && newVal) {
     formData.reqAccount = false;
     formData.reqIpbe = false;
   }
+  formData['reqNone'] = false;
 
   putFormData(formData);
 
@@ -796,11 +807,11 @@ function autoMailOptions() {
     } else if (['not_exists', 'banned', 'banned_cancreate'].includes(formData.usernameStatus)) {
       formData.mailOptionsUsername = 'not_exists';
     }
-  } else if (formData.inputBlockAppeal) {
+  } else if (formData.reqUnblock) {
     if (!formData.normalizedUsername) {
       formData.mailOptionsUsername = 'nousername';
     }
-  } else if (formData.inputResetPassword) {
+  } else if (formData.reqPassword) {
     if (!formData.normalizedUsername && !formData.email) {
       formData.mailOptionsUsername = 'nousername';
     }
@@ -819,7 +830,7 @@ function autoMailOptions() {
       } else {
         formData.mailOptionsIpbe = 'noip';
       }
-    } else if (formData.inputBlockAppeal && !formData.ip) {
+    } else if (formData.reqUnblock && !formData.ip) {
       formData.mailOptionsIpbe = 'noip';
     }
   }
