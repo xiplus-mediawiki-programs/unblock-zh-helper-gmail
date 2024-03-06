@@ -3,7 +3,7 @@
  * 請在此提交 Pull Request: https://github.com/xiplus-mediawiki-programs/unblock-zh-helper-gmail
  */
 
-var SUMMARY_SUFFIX = ' #UZHG v1.4.12';
+var SUMMARY_SUFFIX = ' #UZHG v1.5.0';
 var SERVICE_SCOPE_REQUESTS = 'basic highvolume editpage editprotected createeditmovepage createaccount createlocalaccount';
 var COLOR_ENABLED = '#039BE5';
 var COLOR_DISABLED = '#9E9E9E';
