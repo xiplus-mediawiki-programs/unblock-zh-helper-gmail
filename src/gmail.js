@@ -1,3 +1,8 @@
+/**
+ * 請勿直接修改在 script.google.com 上的本文件，將會在下次 push 時被覆蓋
+ * 請在此提交 Pull Request: https://github.com/xiplus-mediawiki-programs/unblock-zh-helper-gmail
+ */
+
 var SUMMARY_SUFFIX = ' #UZHG v1.4.12';
 var SERVICE_SCOPE_REQUESTS = 'basic highvolume editpage editprotected createeditmovepage createaccount createlocalaccount';
 var COLOR_ENABLED = '#039BE5';
@@ -127,6 +132,16 @@ function createCard(e) {
     archiveUrl = parseArchiveUrl(messages[0].getPlainBody());
   }
 
+  let listname = mt('mail');
+  let replymail = mt('mail-all');
+  if (/unblock-zh/.test(archiveUrl)) {
+    listname = 'unblock-zh';
+    replymail = 'unblock-zh@lists.wikimedia.org'
+  } else if (/wikipedia-zh-ipbe/.test(archiveUrl)) {
+    listname = 'wikipedia-zh-ipbe';
+    replymail = 'wikipedia-zh-ipbe@lists.wikimedia.org'
+  }
+
   var allMailText = subject + '\n';
   // text += 'subject: ' + subject + '\n';
 
@@ -183,7 +198,7 @@ function createCard(e) {
     formData.email = requester;
   }
   if (!formData.summary && archiveUrl) {
-    formData.summary = '[[listarchive:' + archiveUrl + '|unblock-zh申請]]';
+    formData.summary = '[[listarchive:' + archiveUrl + '|' + listname + '申請]]';
   }
 
   // check status
@@ -515,7 +530,7 @@ function createCard(e) {
   var mailContentCore = generateMailContent(formData);
 
   var mailContent = mailContentCore;
-  mailContent += '\n\n' + mt('mail-reply-to-all');
+  mailContent += '\n\n' + mt('mail-reply-to-all', [replymail]);
   mailContent += '\n\n' + mt('mail-username-prefix') + wpUsername;
 
   var mailContentInput = CardService.newTextInput()
@@ -639,6 +654,7 @@ function createCard(e) {
   for (var key in formData) {
     debugText += key + ': ' + JSON.stringify(formData[key]) + '\n';
   }
+  debugText += 'archiveUrl: ' + archiveUrl;
 
   sectionDebug.addWidget(CardService.newTextParagraph().setText(debugText));
 

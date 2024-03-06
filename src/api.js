@@ -1,3 +1,8 @@
+/**
+ * 請勿直接修改在 script.google.com 上的本文件，將會在下次 push 時被覆蓋
+ * 請在此提交 Pull Request: https://github.com/xiplus-mediawiki-programs/unblock-zh-helper-gmail
+ */
+
 function checkStatus(username, ip) {
   if (username === '-') {
     username = '';

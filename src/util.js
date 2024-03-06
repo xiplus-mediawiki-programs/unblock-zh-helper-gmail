@@ -1,6 +1,11 @@
+/**
+ * 請勿直接修改在 script.google.com 上的本文件，將會在下次 push 時被覆蓋
+ * 請在此提交 Pull Request: https://github.com/xiplus-mediawiki-programs/unblock-zh-helper-gmail
+ */
+
 function parseArchiveUrl(text) {
   var m = text.match(
-    /https?:\/\/lists\.wikimedia\.org\/hyperkitty\/(list\/unblock-zh@lists\.wikimedia\.org\/(?:message|thread)\/[^/]+\/?)/
+    /https?:\/\/lists\.wikimedia\.org\/hyperkitty\/(list\/(unblock-zh|wikipedia-zh-ipbe)@lists\.wikimedia\.org\/(?:message|thread)\/[^/]+\/?)/
   );
   if (m) {
     return m[1];
