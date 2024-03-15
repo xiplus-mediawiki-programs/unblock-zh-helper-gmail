@@ -97,14 +97,14 @@ function parseMailBody(text) {
     ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)[是為为]?[：:]?\s*"(?:User:)?([^#]*?)"/g),
     ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)[是為为]?[：:]?\s*“(?:User:)?([^#]*?)”/g),
     ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)[是為为]?[：:]?\s*【(?:User:)?([^#]*?)】/g),
-    ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)[是為为]?[：:]?\s*[\[［【「“]\s*(?:User:)?([^#]*?)\s*[\]］】」”]/g),
-    ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)(?:[是為为：:]|[是為为][：:])\n?(?:User:)?([^\[\]［］【】「」"“”：:，、。；,\n#]+)[，、。；,.\n]/g),
+    ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)[是為为]?[：:]?\s*[\[［【「『“]\s*(?:User:)?([^#]*?)\s*[\]］】」』”]/g),
+    ...text.matchAll(/(?:(?:[帳账帐][戶户號号]|用[户戶]|使用[者著])(?:名[称稱]?)?)(?:[是為为：:]|[是為为][：:])\n?(?:User:)?([^\[\]［］【】「『」』"“”：:，、。；,\n#]+)[，、。；,.\n]/g),
     ...text.matchAll(/创建名为([^#]+?)的账户/g),
     ...text.matchAll(/来自维基百科用户“([^#]+?)”的电子邮件/g),
-    ...text.matchAll(/[为為][\[［【「](.+?)[\]］】」#]申[请請]IP/g),
-    ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20} is\s*:?\s*([^\[\]"“”「」#]+?)[.,\n]/ig),
+    ...text.matchAll(/[为為][\[［【「『](.+?)[\]］】」』#]申[请請]IP/g),
+    ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20} is\s*:?\s*([^\[\]"“”「『」』#]+?)[.,\n]/ig),
     ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20} is \[([^\[\]#]+?)\]/ig),
-    ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20} is ["“「]([^\[\]"#]+?)["”」]/ig),
+    ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20} is ["“「『]([^\[\]"#]+?)["”」』]/ig),
     ...text.matchAll(/(?:user ?(?:name|id)|account).{0,20}[:：] ?([^,.，。；\n#]+?)[.,，。；\n]/ig),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
@@ -128,7 +128,7 @@ function parseMailBody(text) {
   var matches = [
     ...text.matchAll(/((?:\d{1,3}\.){3}\d{1,3})/g),
     ...text.matchAll(/((?:[0-9A-Fa-f:]+:+)+(?:[0-9A-Fa-f]+)?)/ig),
-    ...text.matchAll(/(#[1-4]\d{5})/g),
+    ...text.matchAll(/(#[1-5]\d{5})/g),
   ].sort((a, b) => b.index - a.index);
   for (var match of matches) {
     // extra test for ipv6
