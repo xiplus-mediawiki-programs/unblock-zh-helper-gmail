@@ -1,6 +1,6 @@
 {
 	"name": "unblock-zh-helper-gmail",
-	"version": "1.5.0",
+	"version": "1.5.1",
 	"description": "Gmail Add-On for zhwiki admins to process account and IPBE requests",
 	"scripts": {
 		"lint": "eslint -c .eslintrc.json src/*.js",
