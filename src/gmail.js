@@ -299,7 +299,7 @@ function createCard(e) {
           .setFunctionName('updateInputValue')
           .setParameters({ username: username })
         )
-        .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
+        .setTextButtonStyle(CardService.TextButtonStyle.OUTLINED);
       usernameButtonSet.addButton(button);
     });
     sectionInput.addWidget(usernameButtonSet);
@@ -336,7 +336,7 @@ function createCard(e) {
           .setFunctionName('updateInputValue')
           .setParameters({ ip: iporid })
         )
-        .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
+        .setTextButtonStyle(CardService.TextButtonStyle.OUTLINED);
       iporidButtonSet.addButton(button);
     });
     sectionInput.addWidget(iporidButtonSet);
@@ -516,7 +516,7 @@ function createCard(e) {
     .setOpenLink(
       CardService.newOpenLink().setUrl('https://zh.wikipedia.org/wiki/Special:RecentChanges?hidebyothers=1')
     )
-    .setTextButtonStyle(CardService.TextButtonStyle.TEXT);
+    .setTextButtonStyle(CardService.TextButtonStyle.OUTLINED);
   runButtonSet.addButton(checkChangsButton);
 
   sectionInfo.addWidget(runButtonSet);
