@@ -7,6 +7,7 @@ var SUMMARY_SUFFIX = ' #UZHG v1.5.1';
 var SERVICE_SCOPE_REQUESTS = 'basic highvolume editpage editprotected createeditmovepage createaccount createlocalaccount';
 var COLOR_ENABLED = '#039BE5';
 var COLOR_DISABLED = '#9E9E9E';
+var COLOR_PRIMARY = '#3366CC';
 
 var cache = CacheService.getUserCache();
 
@@ -508,6 +509,7 @@ function createCard(e) {
   var runButton = CardService.newTextButton()
     .setText('以 ' + wpUsername + ' 的身分執行')
     .setOnClickAction(CardService.newAction().setFunctionName('runActions'))
+    .setBackgroundColor(COLOR_PRIMARY)
     .setTextButtonStyle(CardService.TextButtonStyle.FILLED);
   runButtonSet.addButton(runButton);
 
