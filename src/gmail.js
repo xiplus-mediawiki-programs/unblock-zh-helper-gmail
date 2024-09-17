@@ -36,6 +36,7 @@ function getFormData() {
     email: '',
     ip: '',
     actionOptions: [],
+    ipbeExpiry: cache.get('ipbeExpiry') || 'infinite',
     summary: '',
     statusCreateAcccount: '',
     statusCreateLocal: '',
@@ -200,6 +201,9 @@ function createCard(e) {
   }
   if (!formData.summary && archiveUrl) {
     formData.summary = '[[listarchive:' + archiveUrl + '|' + listname + '申請]]';
+  }
+  if (!formData.ipbeExpiry) {
+    formData.ipbeExpiry = 'infinite';
   }
 
   // check status
@@ -645,6 +649,17 @@ function createCard(e) {
     );
   sectionMail.addWidget(radioGroup);
 
+  var textInputIpbeExpiry = CardService.newTextInput()
+    .setFieldName('ipbeExpiry')
+    .setTitle('IPBE 期限')
+    .setValue(formData.ipbeExpiry)
+    .setOnChangeAction(CardService.newAction()
+      .setFunctionName('updateTextInput')
+      .setParameters({ key: 'ipbeExpiry' })
+      .setLoadIndicator(CardService.LoadIndicator.SPINNER)
+    );
+  sectionMail.addWidget(textInputIpbeExpiry);
+
   card.addSection(sectionMail);
 
   // section: debug
@@ -721,6 +736,9 @@ function updateTextInput(e) {
   formData[key] = newVal;
   if (key === 'username' || key === 'ip') {
     formData.needChecks = true;
+  }
+  if (key === 'ipbeExpiry') {
+    cache.put('ipbeExpiry', newVal);
   }
   putFormData(formData);
 
@@ -951,7 +969,7 @@ function runActions(e) {
       action: 'userrights',
       user: formData.normalizedUsername,
       add: 'ipblock-exempt',
-      expiry: 'infinite',
+      expiry: formData.ipbeExpiry,
       reason: '+IP封鎖例外，' + formData.summary + SUMMARY_SUFFIX,
       token: tokens.userrightstoken,
     });
